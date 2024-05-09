@@ -1,9 +1,9 @@
-num_col(10).
+num_colonne(10).
 num_righe(10).
 
-inziale(pos(1,1)).
-finale(pos(9,6)).
-finale(pos(5,10)).
+iniziale(pos(1,1)).
+finale(pos(3,7)).
+%finale(pos(5,10)).
 
 occupata(pos(1,2)).
 occupata(pos(1,3)).
