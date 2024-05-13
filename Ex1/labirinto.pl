@@ -3,7 +3,7 @@ num_righe(10).
 
 iniziale(pos(1,1)).
 finale(pos(3,7)).
-%finale(pos(5,10)).
+finale(pos(5,10)).
 
 occupata(pos(1,2)).
 occupata(pos(1,3)).
