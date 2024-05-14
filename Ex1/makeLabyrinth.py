@@ -54,6 +54,8 @@ class LabyrinthDesigner:
             f.write(str(self.save_counter))
 
         with open(f"labyrinth{self.save_counter}.pl", "w") as f:
+            f.write(f"num_righe({self.rows}).\n")
+            f.write(f"num_colonne({self.cols}).\n")
             f.write(f"iniziale(pos({self.initial_state[0]+1},{self.initial_state[1]+1})).\n")
             for goal_state in self.goal_states:
                 f.write(f"finale(pos({goal_state[0]+1},{goal_state[1]+1})).\n")
