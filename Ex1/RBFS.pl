@@ -13,9 +13,35 @@ euristica(pos(R1,C1), pos(R2,C2), FValue):-
 
 rbfs_aux([(Nodo,_,_)|_], Nodo, CamminoFinale):-
     finale(Nodo),!. %caso base
-rbfs_aux([(Nodo,FLimit, FValue)|Coda], NodoFinale, CamminoFinale):-
-    applicabile(Az,S),
-    trasforma(Az,S,SNuovo),
+rbfs_aux([(Nodo, FLimit, FValue)|Coda], NodoFinale, CamminoFinale):-
+    findall(Az,applicabile(Az,Nodo),ListaAzioni),
+    impostaFValue(Nodo, NodoFinale, ListaAzioni, ListaNuoviNodi, ListaFValue),
+    min_list(ListaFValue, FMin),
+    min_list([FLimit, FMin], NuovoFLimit),
+    
+    
+    %generaNuoviNodi(Nodo, ListaAzioni, ListaNuoviNodi),
+    %generaFValue(ListaNuoviNodi, NodoFinale, ListaFValue),
+
+
+
+impostaFValue(_, _, [], [], []).
+impostaFValue(Nodo, NodoFinale, [Az|ListaAzioniTail], [(NuovoNodo,FLimit,FValue)|ListaNuoviNodiTail], [FValue|ListaFValueTail]):-
+    trasforma(Az,Nodo,NuovoNodo),
+    euristica(NuovoNodo, NodoFinale, FValue),
+    impostaFValue(Nodo, NodoFinale, ListaAzioniTail, [(NuovoNodo,FLimit,FValue)|ListaNuoviNodiTail], [FValue|ListaFValueTail]).
+
+
+generaNuoviNodi(_, [], []).
+generaNuoviNodi(Nodo, [Az|ListaAzioniTail], [NuovoNodo|ListaNuoviNodiTail]):-
+  trasforma(Az,Nodo,NuovoNodo),
+  generaNuoviNodi(Nodo, ListaAzioniTail, [NuovoNodo|ListaNuoviNodiTail]).
+
+
+generaFValue([], _, []).
+generaFValue([NuovoNodo|ListaNuoviNodi], NodoFinale, [FValue|ListaFValueTail]):-
+  euristica(NuovoNodo, NodoFinale, FValue),
+  generaFValue(ListaNuoviNodiTail, NodoFinale, [FValue|ListaFValueTail]).
 
 
 
