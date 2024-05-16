@@ -33,7 +33,7 @@ impostaFValue(_, _, [], [], []).
 impostaFValue(Nodo, NodoFinale, [Az|ListaAzioniTail], [(NuovoNodo,FLimit,FValue)|ListaNuoviNodiTail], [FValue|ListaFValueTail]):-
     trasforma(Az,Nodo,NuovoNodo),
     euristica(NuovoNodo, NodoFinale, FValue),
-    inserisci_ordinato((NuovoNodo,FLimit,FValue), [Head | Tail], ListaNuoviNodiTail)
+    inserisci_ordinato((NuovoNodo,FLimit,FValue), [Head | Tail], ListaNuoviNodiTail),
     impostaFValue(Nodo, NodoFinale, ListaAzioniTail, ListaNuoviNodiTail, [FValue|ListaFValueTail]).
 
 inserisci_ordinato((NuovoNodo,FLimit,FValue), [], [(NuovoNodo,FLimit,FValue)]).  % Se la lista di input è vuota, l'output è una lista con il solo elemento X.
