@@ -17,7 +17,8 @@ rbfs_aux([(Nodo, FLimit, FValue)|Coda], NodoFinale, CamminoFinale):-
     findall(Az,applicabile(Az,Nodo),ListaAzioni),
     impostaFValue(Nodo, NodoFinale, ListaAzioni, ListaNuoviNodi, ListaFValue),
     min_list(ListaFValue, FMin),
-    min_list([FLimit, FMin], NuovoFLimit),
+    rbfs([(NodoMinore, FLimit, FMin)|ListaNuoviNodiTail], NodoFinale, CamminoFinale).
+    %min_list([FLimit, FMin], NuovoFLimit),
     
     
     %generaNuoviNodi(Nodo, ListaAzioni, ListaNuoviNodi),
@@ -25,11 +26,22 @@ rbfs_aux([(Nodo, FLimit, FValue)|Coda], NodoFinale, CamminoFinale):-
 
 
 
+
+
+
 impostaFValue(_, _, [], [], []).
 impostaFValue(Nodo, NodoFinale, [Az|ListaAzioniTail], [(NuovoNodo,FLimit,FValue)|ListaNuoviNodiTail], [FValue|ListaFValueTail]):-
     trasforma(Az,Nodo,NuovoNodo),
     euristica(NuovoNodo, NodoFinale, FValue),
-    impostaFValue(Nodo, NodoFinale, ListaAzioniTail, [(NuovoNodo,FLimit,FValue)|ListaNuoviNodiTail], [FValue|ListaFValueTail]).
+    inserisci_ordinato((NuovoNodo,FLimit,FValue), [Head | Tail], ListaNuoviNodiTail)
+    impostaFValue(Nodo, NodoFinale, ListaAzioniTail, ListaNuoviNodiTail, [FValue|ListaFValueTail]).
+
+inserisci_ordinato((NuovoNodo,FLimit,FValue), [], [(NuovoNodo,FLimit,FValue)]).  % Se la lista di input è vuota, l'output è una lista con il solo elemento X.
+inserisci_ordinato((NuovoNodo,FLimit,FValue), [(VecchioNuovoNodo, FLimit_2, FValue_2)|Tail], [(NuovoNodo,FLimit,FValue),(VecchioNuovoNodo, FLimit_2, FValue_2) | ListaNuoviNodiTail]) :-
+    FValue =< FValue_2.  % Se X è minore o uguale al primo elemento della lista, metti X prima.
+inserisci_ordinato((NuovoNodo,FLimit,FValue), [(VecchioNuovoNodo, FLimit_2, FValue_2)|Tail], [(VecchioNuovoNodo, FLimit_2, FValue_2) | NuovaListaNuoviNodi]) :-
+    FValue > FValue_2,  % Se X è maggiore del primo elemento della lista, inserisci X nel resto della lista.
+    inserisci_ordinato((NuovoNodo,FLimit,FValue), Tail, NuovaListaNuoviNodi).
 
 
 generaNuoviNodi(_, [], []).
