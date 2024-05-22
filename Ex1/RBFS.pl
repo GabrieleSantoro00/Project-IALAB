@@ -17,16 +17,12 @@ rbfs_aux([(Nodo, FLimit, FValue)|Coda], NodoFinale, CamminoFinale):-
     findall(Az,applicabile(Az,Nodo),ListaAzioni),
     impostaFValue(Nodo, NodoFinale, ListaAzioni, ListaNuoviNodi, ListaFValue),
     min_list(ListaFValue, FMin),
-    rbfs([(NodoMinore, FLimit, FMin)|ListaNuoviNodiTail], NodoFinale, CamminoFinale).
     %min_list([FLimit, FMin], NuovoFLimit),
+    rbfs_aux([(NodoMinore, FLimit, FMin)|ListaNuoviNodiTail], NodoFinale, CamminoFinale).
     
     
     %generaNuoviNodi(Nodo, ListaAzioni, ListaNuoviNodi),
     %generaFValue(ListaNuoviNodi, NodoFinale, ListaFValue),
-
-
-
-
 
 
 impostaFValue(_, _, [], [], []).
@@ -42,7 +38,6 @@ inserisci_ordinato((NuovoNodo,FLimit,FValue), [(VecchioNuovoNodo, FLimit_2, FVal
 inserisci_ordinato((NuovoNodo,FLimit,FValue), [(VecchioNuovoNodo, FLimit_2, FValue_2)|Tail], [(VecchioNuovoNodo, FLimit_2, FValue_2) | NuovaListaNuoviNodi]) :-
     FValue > FValue_2,  % Se X è maggiore del primo elemento della lista, inserisci X nel resto della lista.
     inserisci_ordinato((NuovoNodo,FLimit,FValue), Tail, NuovaListaNuoviNodi).
-
 
 generaNuoviNodi(_, [], []).
 generaNuoviNodi(Nodo, [Az|ListaAzioniTail], [NuovoNodo|ListaNuoviNodiTail]):-
