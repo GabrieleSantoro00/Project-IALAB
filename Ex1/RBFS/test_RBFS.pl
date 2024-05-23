@@ -5,12 +5,14 @@ inserisci_ordinato((a, 0, 8), [(e, 0, 6), (i, 0, 7)], ListaOrdinata).
 output
 ListaOrdinata = [(e, 0, 6), (i, 0, 7), (a, 0, 8)].
 */
-inserisci_ordinato((NuovoNodo,FLimit,FValue), [], [(NuovoNodo,FLimit,FValue)]).  % Se la lista di input è vuota, l'output è una lista con il solo elemento X.
-inserisci_ordinato((NuovoNodo,FLimit,FValue), [(VecchioNuovoNodo, FLimit_2, FValue_2)|Tail], [(NuovoNodo,FLimit,FValue),(VecchioNuovoNodo, FLimit_2, FValue_2) | ListaNuoviNodiTail]) :-
-  FValue =< FValue_2.  % Se X è minore o uguale al primo elemento della lista, metti X prima.
-inserisci_ordinato((NuovoNodo,FLimit,FValue), [(VecchioNuovoNodo, FLimit_2, FValue_2)|Tail], [(VecchioNuovoNodo, FLimit_2, FValue_2) | NuovaListaNuoviNodi]) :-
-  FValue > FValue_2,  % Se X è maggiore del primo elemento della lista, inserisci X nel resto della lista.
-  inserisci_ordinato((NuovoNodo,FLimit,FValue), Tail, NuovaListaNuoviNodi).
+
+% Funzione per inserire un nodo in una lista mantenendola ordinata in base a FValue.
+inserisci_ordinato((NuovoNodo, FLimit, FValue), [], [(NuovoNodo, FLimit, FValue)]).  % Se la lista di input è vuota, l'output è una lista con il solo elemento.
+inserisci_ordinato((NuovoNodo, FLimit, FValue), [(VecchioNuovoNodo, FLimit_2, FValue_2)|Tail], [(NuovoNodo, FLimit, FValue), (VecchioNuovoNodo, FLimit_2, FValue_2) | Tail]) :-
+  FValue =< FValue_2.  % Se FValue è minore o uguale al primo elemento della lista, metti il nuovo nodo prima.
+inserisci_ordinato((NuovoNodo, FLimit, FValue), [(VecchioNuovoNodo, FLimit_2, FValue_2)|Tail], [(VecchioNuovoNodo, FLimit_2, FValue_2) | NuovaListaNuoviNodi]) :-
+  FValue > FValue_2,  % Se FValue è maggiore del primo elemento della lista, inserisci nel resto della lista.
+  inserisci_ordinato((NuovoNodo, FLimit, FValue), Tail, NuovaListaNuoviNodi).
 
 
 /*
@@ -36,17 +38,14 @@ ListaNuoviNodi = [(pos(0, 1), _, _A), (pos(2, 1), _, _B), (pos(1, 2), _, _C), (p
 ListaFValue = [_A, _B, _C, _D] .
 */
 
-impostaFValue(_, _, [], ListaNuoviNodiTail, ListaFValueTail).
-impostaFValue(Nodo, NodoFinale, [Az|ListaAzioniTail], [], [FValue|ListaFValueTail]):- 
-    trasforma(Az,Nodo,NuovoNodo),
+% Funzione per impostare FValue per ogni azione applicabile e inserire i nuovi nodi in lista ordinata.
+impostaFValue(_, _, [], ListaNuoviNodi, ListaNuoviNodi). % Caso base: nessuna azione da applicare.
+impostaFValue(Nodo, NodoFinale, [Az|ListaAzioniTail], ListaNuoviNodi, RisultatoListaNuoviNodi):- 
+    trasforma(Az, Nodo, NuovoNodo),
     euristica(NuovoNodo, NodoFinale, FValue),
-    inserisci_ordinato((NuovoNodo,FLimit,FValue), [], ListaNuoviNodiTail),
-    impostaFValue(Nodo, NodoFinale, ListaAzioniTail, ListaNuoviNodiTail, [FValue|ListaFValueTail]).
-impostaFValue(Nodo, NodoFinale, [Az|ListaAzioniTail], [Head|Tail], [FValue|ListaFValueTail]):- 
-    trasforma(Az,Nodo,NuovoNodo),
-    euristica(NuovoNodo, NodoFinale, FValue),
-    inserisci_ordinato((NuovoNodo,FLimit,FValue), [Head|Tail], ListaNuoviNodiTail),
-    impostaFValue(Nodo, NodoFinale, ListaAzioniTail, ListaNuoviNodiTail, [FValue|ListaFValueTail]).
+    FLimit , % Supponiamo un valore di default per FLimit, dovresti adattarlo al tuo contesto.
+    inserisci_ordinato((NuovoNodo, FLimit, FValue), ListaNuoviNodi, NuovaListaNuoviNodi),
+    impostaFValue(Nodo, NodoFinale, ListaAzioniTail, NuovaListaNuoviNodi, RisultatoListaNuoviNodi).
 
 
 /*
@@ -61,3 +60,8 @@ generaNuoviNodi(_, [], ListaNuoviNodiTail).
 generaNuoviNodi(Nodo, [Az|ListaAzioniTail], ListaNuoviNodiTail):-
   trasforma(Az,Nodo,NuovoNodo),
   generaNuoviNodi(Nodo, ListaAzioniTail, [NuovoNodo|ListaNuoviNodiTail]).
+
+
+estraiFValueMin([(_, _, FValueMin)|ListaNuoviNodi], FValueMin).
+
+estraiSecondoFValueMin([PrimoNodo, (_, _, SecondFValueMin)|ListaNuoviNodi], SecondFValueMin).
