@@ -39,17 +39,20 @@ inserisci_ordinato((NuovoNodo,FLimit,FValue), [(VecchioNuovoNodo, FLimit_2, FVal
     FValue > FValue_2,  % Se X è maggiore del primo elemento della lista, inserisci X nel resto della lista.
     inserisci_ordinato((NuovoNodo,FLimit,FValue), Tail, NuovaListaNuoviNodi).
 
-generaNuoviNodi(_, [], []).
-generaNuoviNodi(Nodo, [Az|ListaAzioniTail], [NuovoNodo|ListaNuoviNodiTail]):-
-  trasforma(Az,Nodo,NuovoNodo),
-  generaNuoviNodi(Nodo, ListaAzioniTail, [NuovoNodo|ListaNuoviNodiTail]).
 
+
+%! Abbiamo accorpato i due predicati in impostaFValue
+/*
+generaNuoviNodi(_, [], ListaNuoviNodiTail).
+generaNuoviNodi(Nodo, [Az|ListaAzioniTail], ListaNuoviNodiTail):-
+    trasforma(Az,Nodo,NuovoNodo),
+    generaNuoviNodi(Nodo, ListaAzioniTail, [NuovoNodo|ListaNuoviNodiTail]).
 
 generaFValue([], _, []).
 generaFValue([NuovoNodo|ListaNuoviNodi], NodoFinale, [FValue|ListaFValueTail]):-
   euristica(NuovoNodo, NodoFinale, FValue),
   generaFValue(ListaNuoviNodiTail, NodoFinale, [FValue|ListaFValueTail]).
-
+*/
 
 
 
