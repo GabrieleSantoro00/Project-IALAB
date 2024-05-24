@@ -13,17 +13,34 @@ euristica(pos(R1,C1), pos(R2,C2), FValue):-
 
 rbfs_aux([(Nodo,_,_)|_], Nodo, CamminoFinale):-
     finale(Nodo),!. %caso base
-rbfs_aux([(Nodo, FLimit, FValue)|Coda], NodoFinale, CamminoFinale):-
+rbfs_aux([(Nodo, NodoAntecedenteFLimit, FValue)|Coda], NodoFinale, CamminoFinale):-
     findall(Az,applicabile(Az,Nodo),ListaAzioni),
     impostaFValue(Nodo, NodoFinale, ListaAzioni, ListaNuoviNodi, RisultatoListaNuoviNodi),
     estraiFValueMin([(_, _, FValueMin)|ListaNuoviNodi], FValueMin),
-    FValueMin < FLimit,
-    estraiSecondoFValueMin([PrimoNodo, (_, _, SecondoFValueMin)|ListaNuoviNodi], SecondoFValueMin).
-    rbfs_aux([(NodoSuccessoreMinore, SecondoFValueMin, FValueMin)|ListaNuoviNodi], NodoFinale, CamminoFinale). %SecondoFValueMin è il secondo valore minore di FValue e viene impostato come nuovo FLimit
-
+    confrontaFValueFLimit(FValueMin, FLimit),
     
-    %generaNuoviNodi(Nodo, ListaAzioni, ListaNuoviNodi),
-    %generaFValue(ListaNuoviNodi, NodoFinale, ListaFValue),
+    %Caso in cui FValue è minore di FLimit -> continuo a scendere in
+    estraiSecondoNodo([PrimoNodo, (SecondoNodo, _, SecondoFValueMin)|ListaNuoviNodi], SecondoFValueMin, SecondoNodo).
+    rbfs_aux([(NodoSuccessoreMinore, SecondoFValueMin, SecondoNodo, FValueMin)|ListaNuoviNodi], NodoFinale, CamminoFinale).
+    
+    rbfs_aux([(SecondoNodo,  )], NodoFinale, CamminoFinale).
+
+   
+  
+
+confrontaFValueFLimit(FValue, FLimit):-
+    \+FLimitMinoreDiFValue(FValue, FLimit),
+
+    print "FValue minore di FLimit".
+    % in questo caso devo associare il secondo nodo successore migliore 
+    % e procedere nell'esplorazione
+
+FLimitMaggioreDiFValue(FValue, FLimit):-
+    FLimit < FValue,
+    print "FLimit minore di FValue".
+    % in questo caso non devo associare il secondo nodo successore migliore
+    % e devo tornare indietro esplorando a partire dal secondo nodo migliore del nodo attuale
+
 
 
 impostaFValue(_, _, [], ListaNuoviNodi, ListaNuoviNodi). % Caso base: nessuna azione da applicare.

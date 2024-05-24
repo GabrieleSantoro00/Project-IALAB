@@ -1,3 +1,9 @@
+iniziale(pos(1,1)).
+finale(pos(2,2)).
+
+num_colonne(2).
+num_righe(2).
+
 /*
 TEST inserisci_ordinato --> ok
 input 
@@ -43,7 +49,7 @@ impostaFValue(_, _, [], ListaNuoviNodi, ListaNuoviNodi). % Caso base: nessuna az
 impostaFValue(Nodo, NodoFinale, [Az|ListaAzioniTail], ListaNuoviNodi, RisultatoListaNuoviNodi):- 
     trasforma(Az, Nodo, NuovoNodo),
     euristica(NuovoNodo, NodoFinale, FValue),
-    FLimit , % Supponiamo un valore di default per FLimit, dovresti adattarlo al tuo contesto.
+    FLimit is 100, % Supponiamo un valore di default per FLimit, dovresti adattarlo al tuo contesto.
     inserisci_ordinato((NuovoNodo, FLimit, FValue), ListaNuoviNodi, NuovaListaNuoviNodi),
     impostaFValue(Nodo, NodoFinale, ListaAzioniTail, NuovaListaNuoviNodi, RisultatoListaNuoviNodi).
 
@@ -62,6 +68,81 @@ generaNuoviNodi(Nodo, [Az|ListaAzioniTail], ListaNuoviNodiTail):-
   generaNuoviNodi(Nodo, ListaAzioniTail, [NuovoNodo|ListaNuoviNodiTail]).
 
 
-estraiFValueMin([(_, _, FValueMin)|ListaNuoviNodi], FValueMin).
+/*
+TEST estraiFValueMin --> ok
+input
+estraiFValueMin([(a, 0, 3), (b, 0, 5), (c, 0, 6)], FValueMin).
+output
+FValueMin = 3
+*/
 
-estraiSecondoFValueMin([PrimoNodo, (_, _, SecondFValueMin)|ListaNuoviNodi], SecondFValueMin).
+
+estraiPrimoNodoEPrimoFValue([(PrimoNodo, _, FValueMin)|ListaNuoviNodi], FValueMin, PrimoNodo).
+
+/*
+TEST estraiSecondoNodoESecondoFValue --> 
+input
+estraiSecondoNodoESecondoFValue([(a, 0, 3), (b, 0, 5), (c, 0, 6)], SecondoFValueMin, SecondoNodo).
+output
+SecondoFValueMin = ,
+*/
+
+% Case when the list has only one element. Return infinity for the second FValue.
+estraiSecondoNodoESecondoFValue([_], inf, _) :- !.
+estraiSecondoNodoESecondoFValue([_, (SecondoNodo, _, SecondoFValueMin)|ListaNuoviNodi], SecondoFValueMin, SecondoNodo).
+
+confrontaFValueFLimit(FValue, FLimit, FValue):-
+  \+fLimitMinoreDiFValue(FValue, FLimit, Min). %FValue minore di FLimit 
+
+fLimitMinoreDiFValue(FValue, FLimit, Min):-
+  FLimit < FValue, % FLimit minore di FValue
+  Min is FLimit.
+
+rbfs(Cammino):-
+  iniziale(NodoIniziale),
+  
+  finale(NodoFinale),
+  
+  euristica(NodoIniziale, NodoFinale, FValue),
+  
+  FLimit is 100,
+  
+  rbfs_aux([(NodoIniziale, FLimit, FValue, _)|Coda], NodoFinale, CamminoFinale),
+
+  stampa_lista(CamminoFinale).
+
+
+stampa_lista([]).
+stampa_lista([H|T]) :-
+  write(H),
+  stampa_lista(T).
+
+
+% Caso in cui siamo arrivati a destinazione
+rbfs_aux([(Nodo,_,_,_)|_], Nodo, CamminoFinale):- finale(Nodo),!. %caso base
+
+% Caso in cui non ci sono successori possibili
+rbfs_aux([(Nodo,_,_,_)|_], _, _):-
+  
+  findall(Az,applicabile(Az,Nodo),ListaAzioni),
+  
+  ListaAzioni = [], % The list of actions is empty
+  
+  !, fail.
+
+% Caso ricorsivo 
+rbfs_aux([(Nodo, FLimit, FValue, MiglioreNodoAlternativa)|Coda], NodoFinale, [Nodo|CamminoFinale]):-
+  
+  findall(Az,applicabile(Az,Nodo),ListaAzioni),
+
+  impostaFValue(Nodo, NodoFinale, ListaAzioni, ListaNuoviNodi, RisultatoListaNuoviNodi),
+  
+  estraiPrimoNodoEPrimoFValue(RisultatoListaNuoviNodi, FValueMin, PrimoNodoMigliore),
+  
+  confrontaFValueFLimit(FValueMin, FLimit, Min),
+  
+  estraiSecondoNodoESecondoFValue(RisultatoListaNuoviNodi, SecondoFValueMin, SecondoNodoMigliore),
+
+  append(Coda, RisultatoListaNuoviNodi, NuovaCoda),
+
+  rbfs_aux([(PrimoNodoMigliore, SecondoFValueMin, FValueMin, SecondoNodo)|NuovaCoda], NodoFinale, [PrimoNodoMigliore|CamminoFinale]).
