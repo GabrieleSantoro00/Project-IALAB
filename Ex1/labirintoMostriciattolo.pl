@@ -1,8 +1,10 @@
 num_colonne(8).
 num_righe(8).
 
-iniziale(pos(1,1)).
-finale(pos(4,8)).
+
+
+mostriciattolo(pos(1,1)).
+portale(pos(4,8)).
 
 %blocchi non abbattibili
 occupata(pos(1,6)).  %(R,C)
@@ -29,6 +31,11 @@ bloccoDiGhiaccio(pos(7,7)).
 
 %posizione martello
 martello(pos(8,2)).
+
+%stato iniziale del labirinto
+% stato_iniziale(stato(pos(1, 1), [pos(1, 7), pos(5, 4), pos(8, 8)], [pos(2, 6), pos(2, 7), pos(7, 7)], pos(8, 2), false)).
+
+stato_iniziale(stato(pos(1, 1), [pos(1, 7), pos(5, 4), pos(8, 8)], [pos(2, 6), pos(2, 7), pos(7, 7)], pos(8, 2), false, 0, 10)).
 
 
 
