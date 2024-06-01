@@ -1,4 +1,4 @@
-/*
+
 iniziale(pos(1,1)).
 finale(pos(2,2)).
 
@@ -6,7 +6,6 @@ num_colonne(2).
 num_righe(2).
 
 occupata(pos(1,2)).
-*/
 
 /*
 TEST inserisci_ordinato --> ok
@@ -52,7 +51,7 @@ costo(_,_,Costo) :- Costo is 1.
 
 % Funzione per impostare HValue per ogni azione applicabile e inserire i nuovi nodi in lista ordinata.
 impostaFValue(_, _, _, [], ListaNuoviNodi, ListaNuoviNodi). % Caso base: nessuna azione da applicare.
-impostaFValue(Nodo, NodoFinale, CamminoAttuale, [Az|ListaAzioniTail], ListaNuoviNodi, RisultatoListaNuoviNodi):- 
+impostaFValue(Nodo, NodoFinale, CamminoAttuale, [Az|ListaAzioniTail], NuovoFValueMin, ListaNuoviNodi, RisultatoListaNuoviNodi):- 
     trasforma(Az, Nodo, NuovoNodo),
     costo(Nodo, NuovoNodo, Costo),
     length(CamminoAttuale, GValue),
@@ -61,20 +60,6 @@ impostaFValue(Nodo, NodoFinale, CamminoAttuale, [Az|ListaAzioniTail], ListaNuovi
     FValue is NuovoGValue + HValue,
     inserisci_ordinato((NuovoNodo, FLimit, FValue, [NuovoNodo|CamminoAttuale]), ListaNuoviNodi, NuovaListaNuoviNodi),
     impostaFValue(Nodo, NodoFinale, CamminoAttuale, ListaAzioniTail, NuovaListaNuoviNodi, RisultatoListaNuoviNodi).
-
-
-/*
-TEST generaNuoviNodi --> ok
-input
-generaNuoviNodi(pos(1, 1), [sud, est], ListaNuoviNodi).
-output
-ListaNuoviNodi = [pos(2, 1), pos(1, 2)].
-*/
-
-generaNuoviNodi(_, [], ListaNuoviNodiTail).
-generaNuoviNodi(Nodo, [Az|ListaAzioniTail], ListaNuoviNodiTail):-
-  trasforma(Az,Nodo,NuovoNodo),
-  generaNuoviNodi(Nodo, ListaAzioniTail, [NuovoNodo|ListaNuoviNodiTail]).
 
 
 /*
@@ -95,9 +80,11 @@ rbfs(Cammino):-
   
   euristica(NodoIniziale, NodoFinale, HValue),
   
-  FLimit is inf,
+  FLimit = inf,
+
+  FlagConfronto = 0,
   
-  rbfs_aux((NodoIniziale, FLimit, HValue, [NodoIniziale|CamminoAttuale]), NodoFinale, CamminoFinale, Cammino),
+  rbfs_aux((NodoIniziale, FLimit, HValue, [NodoIniziale|CamminoAttuale]), NodoFinale, CamminoFinale, Cammino, FValueRitornato, FlagConfronto),
 
   stampa_lista(Cammino).
 
@@ -109,34 +96,62 @@ stampa_lista([H|T]) :-
 
 
 % Caso in cui siamo arrivati a destinazione
-rbfs_aux((Nodo,_,_,_), Nodo, CamminoFinale, CamminoFinale):- finale(Nodo),!. %caso base
+rbfs_aux((Nodo,_,_,_), Nodo, CamminoFinale, CamminoFinale, _, _):- finale(Nodo),!. %caso base
 
 % Caso in cui non ci sono successori possibili
-rbfs_aux((Nodo,_,_,_), _, _, _):-
+rbfs_aux((Nodo,_,_,_), _, _, _, _, _):-
   
   findall(Az,applicabile(Az,Nodo),ListaAzioni),
   
-  ListaAzioni = [], % The list of actions is empty
-  
-  !, fail.
+  ListaAzioni = [],
+
+  !, fail. % The list of actions is empty
 
 % Caso ricorsivo 
-rbfs_aux((Nodo, FLimit, FValue, CamminoAttuale), NodoFinale, CamminoFinale, CamminoFinaleRitornato):-
+rbfs_aux((Nodo, FLimit, FValue, CamminoAttuale), NodoFinale, CamminoFinale, CamminoFinaleRitornato, FValueRitornato, FlagConfronto):-
 
   findall(Az,applicabile(Az,Nodo),ListaAzioni),
 
-  impostaFValue(Nodo, NodoFinale, CamminoAttuale, ListaAzioni, ListaNuoviNodi, ListaNuoviNodiRitornato),
+  impostaFValue(Nodo, NodoFinale, CamminoAttuale, ListaAzioni, NuovoFValueMin, ListaNuoviNodi, ListaNuoviNodiRitornato),
+
+  aggiornaFValueWrapper(ListaNuoviNodiRitornato, FValueRitornato, FlagConfronto, ListaNuoviNodiRitornatoAggiornata),
+
+  estraiValoriPrimoNodo(ListaNuoviNodiRitornatoAggiornata, FValueMin, PrimoNodoMigliore, CamminoNodoMinore),
   
-  estraiValoriPrimoNodo(ListaNuoviNodiRitornato, FValueMin, PrimoNodoMigliore, CamminoNodoMinore),
-  
+  fValueMinoreDiFLimit(FValueMin, FLimit, FValueRitornato, FlagConfronto),
+
   FValueMin =< FLimit,
-  
-  estraFValueMinoreAlternativo(ListaNuoviNodiRitornato, FValueMinAlternativo),
+
+  estraFValueMinoreAlternativo(ListaNuoviNodiRitornatoAggiornata, FValueMinAlternativo),
 
   NuovoCamminoFinale = [PrimoNodoMigliore|CamminoFinale],
 
-  rbfs_aux((PrimoNodoMigliore, FValueMinAlternativo, FValueMin, CamminoNodoMinore), NodoFinale, NuovoCamminoFinale, CamminoFinaleRitornato).
+  rbfs_aux((PrimoNodoMigliore, FValueMinAlternativo, FValueMin, CamminoNodoMinore), NodoFinale, NuovoCamminoFinale, CamminoFinaleRitornato, FValueRitornato, FlagConfronto).
+  
 
 
 estraFValueMinoreAlternativo([_], inf) :- !.
+
 estraFValueMinoreAlternativo([_, (_, _, FValueAlternativo, _)|ListaNuoviNodi], FValueAlternativo).
+
+
+fValueMinoreDiFLimit(FLimit, FValue, FValueRitornato, FlagConfronto,):-
+
+  \+fLimitMinoreDiFValue(FValue, FLimit, FValueRitornato, FlagConfronto),
+
+  FlagConfronto is 0.
+
+
+fLimitMinoreDiFValue(FValue, FLimit, FValue, FlagConfronto):-
+
+  FLimit =< FValue,
+
+  FlagConfronto is 1.
+
+
+aggiornaFValueWrapper([(Nodo, FLimit, _ , CamminoAttuale)|ListaNuoviNodiRitornato], FValueRitornato, FlagConfronto, ListaNuoviNodiRitornatoAggiornata):-
+  \+aggiornaFValue([(Nodo, FLimit, _ , CamminoAttuale)|ListaNuoviNodiRitornato], FValueRitornato, FlagConfronto, ListaNuoviNodiRitornatoAggiornata),!.
+
+aggiornaFValue([(Nodo, FLimit, _ , CamminoAttuale)|ListaNuoviNodiRitornato], FValueRitornato, FlagConfronto, ListaNuoviNodiRitornatoAggiornata):-
+  FlagConfronto = 1,
+  inserisci_ordinato((Nodo, FLimit, FValueRitornato, CamminoAttuale), ListaNuoviNodiRitornato, ListaNuoviNodiRitornatoAggiornata).
