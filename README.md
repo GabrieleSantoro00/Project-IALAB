@@ -1,20 +1,50 @@
 # Project-IALAB
 
-## Exercise 1:
+## Exercise 1: PROLOG
 <details>
 <summary></summary>
+Si richiede di implementare in Prolog due strategie di ricerca nello spazio degli stati a scelta e di confrontarne le prestazioni su due domini distinti:
+
+- labirinto con almeno due uscite (non necessariamente raggiungibili)
+
+- ricerca del portale del mostriciattolo: questo secondo dominio prevede un labirinto, di dimensione fissa 8 x 8, con muri invalicabili (come il labirinto “standard”) e muri di ghiaccio che si possono abbattere con un martello. Un mostriciattolo deve raggiungere la cella contenente il portale. In una delle celle è presente un martello per rompere i muri di ghiaccio. Ci sono anche tre gemme che, se presenti in celle contigue a due a due al momento del raggiungimento del portale, danno diritto ad un bonus. Sono possibili i movimenti nelle 4 direzioni (nord, sud, ovest, est), che corrispondono al “rovesciamento” della scacchiera: ad ogni azione, TUTTI gli oggetti, ad eccezione del solo martello, si spostano sul bordo della scacchiera, rispettando l’ordine della posizione iniziale nel caso più oggetti si trovino inizialmente sulla stessa riga/colonna (link a slides esplicative). 
+  - FACOLTATIVO: sul labirinto è presente il mostriciattolo rivale, che si muove come tutti gli altri oggetti e sconfigge il mostriciattolo nel caso lo raggiunga.
+
+Si richiede di valutare brevemente le prestazioni degli algoritmi implementati,
+confrontandoli sui medesimi casi di test. 
+
 </details>
 
 ---
 
-## Exercise 2:
+## Exercise 2: ASP
 <details>
 <summary></summary>
+Si richiede l’utilizzo del paradigma ASP (Answer Set Programming) per la
+risoluzione automatica di uno dei due seguenti problemi, a scelta:
+
+Generazione del calendario di una competizione sportiva con le seguenti caratteristiche:
+- sono iscritte 16 squadre;
+- il campionato prevede 30 giornate, 15 di andata e 15 di ritorno NON
+simmetriche, ossia la giornata 1 di ritorno non coincide necessariamente con la
+giornata 1 di andata a campi invertiti;
+- ogni squadra fa riferimento ad una città, che offre la struttura in cui la squadra
+gioca gli incontri in casa;
+- ogni squadra affronta due volte tutte le altre squadre, una volta in casa e una
+volta fuori casa, ossia una volta nella propria città di riferimento e una volta in
+quella dell’altra squadra: la prima volta nel girone di andata (dalla giornata 1 alla
+giornata15) e la seconda nel girone di ritorno (16-24);
+- Alcune delle squadre fanno riferimento alla medesima città e condividono la
+stessa struttura di gioco, quindi non possono giocare entrambe in casa nella
+stessa giornata. Ovviamente, fanno eccezione le due giornate in cui giocano
+l’una contro l’altra (derby);
+- ciascuna squadra non deve giocare mai più di due partite consecutive in casa o
+fuori casa.
 </details>
 
 ---
 
-## Exercise 3:
+## Exercise 3: CLIPS
 <details>
 <summary></summary>
 L’obiettivo del progetto è quello di sviluppare un sistema esperto che giochi al famoso gioco Mastermind. Il gioco consiste nello scoprire un codice segreto, composto da quattro cifre, con al più 10 tentativi. Nel nostro caso, occorre implementare una variante del gioco definita in questo modo:

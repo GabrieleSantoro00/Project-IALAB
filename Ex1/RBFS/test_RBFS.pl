@@ -50,16 +50,7 @@ ListaHValue = [_A, _B, _C, _D] .
 costo(_,_,Costo) :- Costo is 1.
 
 % Funzione per impostare HValue per ogni azione applicabile e inserire i nuovi nodi in lista ordinata.
-impostaFValue(_, _, _, [], ListaNuoviNodi, ListaNuoviNodi). % Caso base: nessuna azione da applicare.
-impostaFValue(Nodo, NodoFinale, CamminoAttuale, [Az|ListaAzioniTail], NuovoFValueMin, ListaNuoviNodi, RisultatoListaNuoviNodi):- 
-    trasforma(Az, Nodo, NuovoNodo),
-    costo(Nodo, NuovoNodo, Costo),
-    length(CamminoAttuale, GValue),
-    NuovoGValue is GValue + Costo,
-    euristica(NuovoNodo, NodoFinale, HValue),
-    FValue is NuovoGValue + HValue,
-    inserisci_ordinato((NuovoNodo, FLimit, FValue, [NuovoNodo|CamminoAttuale]), ListaNuoviNodi, NuovaListaNuoviNodi),
-    impostaFValue(Nodo, NodoFinale, CamminoAttuale, ListaAzioniTail, NuovaListaNuoviNodi, RisultatoListaNuoviNodi).
+
 
 
 /*
@@ -112,7 +103,7 @@ rbfs_aux((Nodo, FLimit, FValue, CamminoAttuale), NodoFinale, CamminoFinale, Camm
 
   findall(Az,applicabile(Az,Nodo),ListaAzioni),
 
-  impostaFValue(Nodo, NodoFinale, CamminoAttuale, ListaAzioni, NuovoFValueMin, ListaNuoviNodi, ListaNuoviNodiRitornato),
+  impostaFValue(Nodo, NodoFinale, CamminoAttuale, ListaAzioni, ListaNuoviNodi, ListaNuoviNodiRitornato),
 
   aggiornaFValueWrapper(ListaNuoviNodiRitornato, FValueRitornato, FlagConfronto, ListaNuoviNodiRitornatoAggiornata),
 
@@ -120,9 +111,9 @@ rbfs_aux((Nodo, FLimit, FValue, CamminoAttuale), NodoFinale, CamminoFinale, Camm
   
   fValueMinoreDiFLimit(FValueMin, FLimit, FValueRitornato, FlagConfronto),
 
-  FValueMin =< FLimit,
+  confrontaFValueFLimit(FValueMin, Flimit),
 
-  estraFValueMinoreAlternativo(ListaNuoviNodiRitornatoAggiornata, FValueMinAlternativo),
+  estraiFValueMinoreAlternativo(ListaNuoviNodiRitornatoAggiornata, FValueMinAlternativo),
 
   NuovoCamminoFinale = [PrimoNodoMigliore|CamminoFinale],
 
@@ -130,12 +121,25 @@ rbfs_aux((Nodo, FLimit, FValue, CamminoAttuale), NodoFinale, CamminoFinale, Camm
   
 
 
+  impostaFValue(_, _, _, [], ListaNuoviNodi, ListaNuoviNodi). % Caso base: nessuna azione da applicare.
+  impostaFValue(Nodo, NodoFinale, CamminoAttuale, [Az|ListaAzioniTail], ListaNuoviNodi, RisultatoListaNuoviNodi):- 
+      trasforma(Az, Nodo, NuovoNodo),
+      costo(Nodo, NuovoNodo, Costo),
+      length(CamminoAttuale, GValue),
+      NuovoGValue is GValue + Costo,
+      euristica(NuovoNodo, NodoFinale, HValue),
+      FValue is NuovoGValue + HValue,
+      inserisci_ordinato((NuovoNodo, FLimit, FValue, [NuovoNodo|CamminoAttuale]), ListaNuoviNodi, NuovaListaNuoviNodi),
+      impostaFValue(Nodo, NodoFinale, CamminoAttuale, ListaAzioniTail, NuovaListaNuoviNodi, RisultatoListaNuoviNodi).
+
+
+
 estraFValueMinoreAlternativo([_], inf) :- !.
 
 estraFValueMinoreAlternativo([_, (_, _, FValueAlternativo, _)|ListaNuoviNodi], FValueAlternativo).
 
 
-fValueMinoreDiFLimit(FLimit, FValue, FValueRitornato, FlagConfronto,):-
+fValueMinoreDiFLimit(FLimit, FValue, FValueRitornato, FlagConfronto):-
 
   \+fLimitMinoreDiFValue(FValue, FLimit, FValueRitornato, FlagConfronto),
 
@@ -155,3 +159,13 @@ aggiornaFValueWrapper([(Nodo, FLimit, _ , CamminoAttuale)|ListaNuoviNodiRitornat
 aggiornaFValue([(Nodo, FLimit, _ , CamminoAttuale)|ListaNuoviNodiRitornato], FValueRitornato, FlagConfronto, ListaNuoviNodiRitornatoAggiornata):-
   FlagConfronto = 1,
   inserisci_ordinato((Nodo, FLimit, FValueRitornato, CamminoAttuale), ListaNuoviNodiRitornato, ListaNuoviNodiRitornatoAggiornata).
+
+confrontaFValueFLimit(FValue, Flimit):-
+  \+fValueMaggioreFLimit(FValue, FLimit).
+
+fValueMaggioreFLimit(FValue, FLimit):-
+  FLimit =< FValue,  % assegna il valore di FValue a FValueMin
+  FlagConfronto = 1,   % assegna il valore 1 a FlagConfronto
+  assert(fValueMin(FValueRitornato)), 
+  assert(flagConfronto(FlagConfronto)), 
+  fail.
