@@ -2,6 +2,7 @@
 :- dynamic(bloccoDiGhiaccio/1).
 :- dynamic(gemma/1).
 :- dynamic(mostriciattolo/1).
+:-dynamic(occupata/1).
 
 direzione(nord, pos(R, C), pos(R2, C)) :- R2 is R - 1, R2 > 0.
 direzione(sud, pos(R, C), pos(R2, C)) :- num_righe(NR), R2 is R + 1, R2 =< NR.
@@ -81,12 +82,26 @@ muovi_oggetto_in_direzione(Direzione, mostriciattolo(PosizioneAttuale), StatoIni
     ;   StatoFinale = StatoIniziale % Se la posizione non è valida, non muovere l'oggetto e restituire lo stato attuale
     ).
 
-aggiorna_posizione_gemma(PosizioneAttuale, NuovaPosizione, stato(mostro(Mostro), Gemme, BlocchiDiGhiaccio, Martello, HaMartello), stato(mostro(Mostro), NuoveGemme, BlocchiDiGhiaccio, Martello, HaMartello)) :-
-    selectchk(gemma(PosizioneAttuale), Gemme, GemmeRimanenti),
-    NuoveGemme = [gemma(NuovaPosizione)|GemmeRimanenti].
+%aggiorna_posizione_gemma(PosizioneAttuale, NuovaPosizione, stato(mostro(Mostro), Gemme, BlocchiDiGhiaccio, Martello, HaMartello), stato(mostro(Mostro), NuoveGemme, BlocchiDiGhiaccio, Martello, HaMartello)) :-
+    %selectchk(gemma(PosizioneAttuale), Gemme, GemmeRimanenti),
+    %NuoveGemme = [gemma(NuovaPosizione)|GemmeRimanenti].
+
+
+    %aggiorna_posizione_gemma(PosizioneAttuale, NuovaPosizione, stato(mostro(Mostro), Gemme, BlocchiDiGhiaccio, Martello, HaMartello), stato(mostro(Mostro), NuoveGemme, BlocchiDiGhiaccio, Martello, HaMartello)) :-
+        %selectchk(gemma(PosizioneAttuale), Gemme, GemmeRimanenti),
+        %append(GemmeRimanenti, [gemma(NuovaPosizione)], NuoveGemme).
+
+aggiorna_posizione_gemma(PosizioneAttuale, NuovaPosizione, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), stato(Mostro, NuoveGemme, BlocchiDiGhiaccio, Martello, HaMartello)) :-
+    write('Tentativo di aggiornare la gemma da: '), write(PosizioneAttuale), write(' a: '), write(NuovaPosizione), nl,
+    selectchk(gemma(PosizioneAttuale), Gemme, GemmeRimanenti) -> (
+        append(GemmeRimanenti, [gemma(NuovaPosizione)], NuoveGemme),
+        write('Aggiornamento riuscito. Nuove posizioni gemme: '), write(NuoveGemme), nl
+    ); (
+        write('Aggiornamento fallito. Gemma non trovata.'), nl,
+        fail
+    ).
 
 aggiorna_posizione_mostro(_, NuovaPosizione, stato(_, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), stato(mostro(NuovaPosizione), Gemme, BlocchiDiGhiaccio, Martello, HaMartello)).
 
 
-stato_iniziale(stato(mostro(pos(2, 2)), [], [], pos(1, 1), false)).
 
