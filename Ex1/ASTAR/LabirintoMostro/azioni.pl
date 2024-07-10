@@ -122,4 +122,3 @@ muovi_mostro(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
 
 muovi_mostro(_, PosizioneCorrente, stato(mostro(PosizioneCorrente), Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
              stato(mostro(PosizioneCorrente), Gemme, BlocchiDiGhiaccio, Martello, HaMartello)).
-
