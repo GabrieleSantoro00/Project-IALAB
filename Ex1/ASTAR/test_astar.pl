@@ -1,4 +1,5 @@
-:- ['azioni'], ['labirinto_test'].
+:- ['azioni'], ['labirinto1280x1280'], ['stampaLabirinto'].
+:- set_prolog_flag(answer_write_options, [max_depth(0)]).
 
 astar(Cammino) :-
     iniziale(NodoIniziale),
@@ -16,17 +17,28 @@ euristica(pos(R1, C1), pos(R2, C2), Valore) :-
 
 astar_aux([( _, _, Nodo, Cammino)| _], _, NodoFinale, Cammino) :-finale(Nodo),!.
 astar_aux([(F, H, Nodo, Cammino)|Coda], Visitati, NodoFinale, CamminoFinale) :-
-    \+member(Nodo, Visitati),!,
     findall(Azione, applicabile(Azione, Nodo), ListaAzioni),
-    generaNuoviStati(Nodo, ListaAzioni, ListaNuoviStati),
-    calcolaFNuoviStati(ListaNuoviStati, NodoFinale, ListaNuoviStatiConF),
+    generaNuoviStati([(Nodo, Cammino)], ListaAzioni, ListaNuoviStati),
+    differenza(ListaNuoviStati, Visitati, ListaNuoviStatiDaVisitare),
+    calcolaFNuoviStati(ListaNuoviStatiDaVisitare, NodoFinale, ListaNuoviStatiConF),
     inserisci_lista_ordinata(ListaNuoviStatiConF, Coda, NuovaCoda),
-    astar_aux(NuovaCoda, [Nodo | Visitati], NodoFinale, CamminoFinale).
+    append(ListaNuoviStatiDaVisitare, Visitati, NuoviVisitati),
+    astar_aux(NuovaCoda, [(Nodo, Cammino) | NuoviVisitati], NodoFinale, CamminoFinale).
+
 
 generaNuoviStati(_, [], []).
-generaNuoviStati(Nodo, [Azione | AzioniTail], [(NodoGenerato, [Azione | Cammino]) | NuoviStatiTail]) :-
+generaNuoviStati([(Nodo, Cammino)], [Azione | AzioniTail], [(NodoGenerato, [Azione | Cammino]) | NuoviStatiTail]) :-
     trasforma(Azione, Nodo, NodoGenerato),
-    generaNuoviStati(Nodo, AzioniTail, NuoviStatiTail).
+    generaNuoviStati([(Nodo, Cammino)], AzioniTail, NuoviStatiTail).
+
+
+differenza([], _, []).
+differenza([(Nodo, _) | Tail], Visitati, Risultato) :-
+    member((Nodo, _), Visitati), !,
+    differenza(Tail, Visitati, Risultato).
+differenza([(Nodo, Cammino) | Tail], Visitati, [(Nodo, Cammino) | RisTail]) :-
+    differenza(Tail, Visitati, RisTail).
+  
 
 calcolaFNuoviStati([], _, []).
 calcolaFNuoviStati([(Nodo, Cammino) | Coda], NodoFinale, [(F, H, Nodo, Cammino) | ListaNuoviStatiConF]) :-
