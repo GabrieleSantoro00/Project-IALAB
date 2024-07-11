@@ -73,7 +73,7 @@ muovi_oggetti([Oggetto|Resto], Direzione, StatoIniziale, StatoFinale) :-
 muovi_oggetto_in_direzione(Direzione, gemma(PosIniziale), stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale) :-
  muovi_gemma(Direzione, PosIniziale, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale).
 
- muovi_gemma(Direzione, PosizioneCorrente, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale) :-
+/*muovi_gemma(Direzione, PosizioneCorrente, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale) :-
      direzione(Direzione, PosizioneCorrente, NuovaPos),
      posizione_valida(NuovaPos),
      StatoIniziale = stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
@@ -85,7 +85,28 @@ muovi_oggetto_in_direzione(Direzione, gemma(PosIniziale), stato(Mostro, Gemme, B
          StatoFinale = stato(Mostro, [NuovaPos|GemmeSenzaCorrente], BlocchiDiGhiaccio, Martello, HaMartello)
      ;   StatoFinale = StatoIniziale
      ).
+*/
+muovi_gemma(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
+    direzione(Direzione, PosizioneCorrente, NuovaPos),
+    posizione_valida(NuovaPos, StatoIniziale),
+    !, % Se posizione_valida fallisce, non tentare alternative
+    aggiorna_stato_con_nuova_pos_gemma(PosizioneCorrente, NuovaPos, StatoIniziale, StatoIntermedio),
+    muovi_gemma(Direzione, NuovaPos, StatoIntermedio, StatoFinale). % Chiamata ricorsiva con la nuova posizione
+muovi_gemma(_, _, Stato, Stato). % Caso base: se non è possibile muovere ulteriormente la gemma, restituisci lo stato attuale
 
+posizione_valida(Posizione, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello)) :-
+    Mostro = mostro(PosMostro),
+    Posizione \= PosMostro,
+    \+ memberchk(Posizione, BlocchiDiGhiaccio),
+    \+occupata(Posizione),
+    \+occupataDaAltraGemma(Posizione, Gemme).
+
+occupataDaAltraGemma(Posizione, Gemme) :-
+    memberchk(Posizione, Gemme).
+
+aggiorna_stato_con_nuova_pos_gemma(PosizioneCorrente, NuovaPos, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale) :-
+    select(PosizioneCorrente, Gemme, GemmeSenzaCorrente), % Rimuove la posizione corrente dalla lista delle gemme
+    StatoFinale = stato(Mostro, [NuovaPos|GemmeSenzaCorrente], BlocchiDiGhiaccio, Martello, HaMartello). % Aggiunge la nuova posizione alla lista delle gemme
 
 muovi_gemma(_, PosizioneCorrente, stato(Mostro, gemma(PosizioneCorrente), BlocchiDiGhiaccio, Martello, HaMartello),
              stato(Mostro, gemma(PosizioneCorrente), BlocchiDiGhiaccio, Martello, HaMartello)).
