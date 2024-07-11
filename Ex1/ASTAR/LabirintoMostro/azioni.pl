@@ -59,8 +59,8 @@ muovi_tutti_gli_oggetti(Direzione, StatoIniziale, StatoFinale) :-
     (
         Direzione = nord, sort(1, @=<, OggettiMobili, OggettiMobiliOrdinati);
         Direzione = sud, sort(1, @>=, OggettiMobili, OggettiMobiliOrdinati);
-        Direzione = ovest, sort(2, @=<, OggettiMobili, OggettiMobiliOrdinati);
-        Direzione = est, sort(2, @>=, OggettiMobili, OggettiMobiliOrdinati)
+        Direzione = ovest, sort(1, @=<, OggettiMobili, OggettiMobiliOrdinati);
+        Direzione = est, sort(1, @>=, OggettiMobili, OggettiMobiliOrdinati)
     ),
     muovi_oggetti(OggettiMobiliOrdinati, Direzione, StatoIniziale, StatoFinale).
 
@@ -115,7 +115,7 @@ muovi_oggetto_in_direzione(Direzione, mostro(PosIniziale), stato(Mostro, Gemme, 
     muovi_mostro(Direzione, PosIniziale, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale).
 
 % Muovi il mostro nella direzione specificata
-muovi_mostro(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
+/*muovi_mostro(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
     direzione(Direzione, PosizioneCorrente, NuovaPos),
     posizione_valida(NuovaPos),
     StatoIniziale = stato(_, Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
@@ -139,6 +139,33 @@ muovi_mostro(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
         )
         ;
         muovi_mostro(Direzione, NuovaPos, stato(mostro(NuovaPos), Gemme, BlocchiDiGhiaccio, Martello, HaMartello1), StatoFinale)
+    ).
+
+muovi_mostro(_, PosizioneCorrente, stato(mostro(PosizioneCorrente), Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
+             stato(mostro(PosizioneCorrente), Gemme, BlocchiDiGhiaccio, Martello, HaMartello)).*/
+muovi_mostro(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
+    direzione(Direzione, PosizioneCorrente, NuovaPos),
+    posizione_valida(NuovaPos),
+    StatoIniziale = stato(_, Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
+    \+ memberchk(NuovaPos, Gemme),
+    \+ occupata(NuovaPos),
+    (
+        NuovaPos = Martello ->
+        (retract(martello(Martello)), HaMartello1 = true)
+        ;
+        HaMartello1 = HaMartello
+    ),
+    (
+        HaMartello1 ->
+        (
+            rompi_ghiaccio(NuovaPos, BlocchiDiGhiaccio, NuoviBlocchiDiGhiaccio),
+            muovi_mostro(Direzione, NuovaPos, stato(mostro(NuovaPos), Gemme, NuoviBlocchiDiGhiaccio, Martello, HaMartello1), StatoFinale)
+        )
+        ;
+        (
+            \+ memberchk(NuovaPos, BlocchiDiGhiaccio), % Verifica che la nuova posizione non sia un blocco di ghiaccio
+            muovi_mostro(Direzione, NuovaPos, stato(mostro(NuovaPos), Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale)
+        )
     ).
 
 muovi_mostro(_, PosizioneCorrente, stato(mostro(PosizioneCorrente), Gemme, BlocchiDiGhiaccio, Martello, HaMartello),

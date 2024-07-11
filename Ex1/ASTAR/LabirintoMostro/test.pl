@@ -18,15 +18,19 @@ configura_stato_iniziale :-
     retractall(num_colonne(_)),
     retractall(num_righe(_)),
     retractall(martello(_)),
-    assert(num_righe(5)),
-    assert(num_colonne(5)),
-    assert(mostro(pos(1, 1))),
-    assert(gemma(pos(1, 4))),
-    assert(gemma(pos(3, 3))), %nel primo test mi sposta solo la prima gemma
-    assert(bloccoDiGhiaccio(pos(3, 1))),
-    assert(bloccoDiGhiaccio(pos(4, 1))),
-    assert(martello(pos(2, 1))),
-    assert(occupata(pos(5, 5))).
+    assert(num_righe(8)),
+    assert(num_colonne(8)),
+    assert(occupata(pos(1, 1))),
+    assert(martello(pos(1, 4))),
+    assert(bloccoDiGhiaccio(pos(1, 2))),
+    assert(gemma(pos(5, 4))),
+    %assert(bloccoDiGhiaccio(pos(3, 1))),
+    assert(bloccoDiGhiaccio(pos(1, 6))),
+    assert(bloccoDiGhiaccio(pos(1, 7))),
+    assert(mostro(pos(5, 6))),
+    assert(occupata(pos(2, 4))).
+    %assert(occupata(pos(4, 4))).
+
 
 stato_iniziale(Stato) :-
     mostro(Mostro),
@@ -39,7 +43,7 @@ stato_iniziale(Stato) :-
 test_movimento :-
     configura_stato_iniziale,
     stato_iniziale(StatoIniziale),
-    muovi_tutti_gli_oggetti(sud, StatoIniziale, StatoFinale),
+    muovi_tutti_gli_oggetti(est, StatoIniziale, StatoFinale),
     writeln('Stato Iniziale:'),
     writeln(StatoIniziale),
     writeln('Stato Finale:'),
