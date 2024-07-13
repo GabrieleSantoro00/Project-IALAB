@@ -1,0 +1,16 @@
+% Labirinto 10x10
+num_colonne(10).
+num_righe(10).
+
+iniziale(pos(1,1)).
+finale(pos(10,10)).
+
+occupata(pos(2,1)).
+occupata(pos(2,2)).
+occupata(pos(2,3)).
+occupata(pos(3,3)).
+occupata(pos(3,4)).
+occupata(pos(4,5)).
+occupata(pos(5,5)).
+occupata(pos(5,6)).
+occupata(pos(6,6)).
