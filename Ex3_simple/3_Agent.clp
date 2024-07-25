@@ -10,6 +10,7 @@
  (return (explode$ ?input))
 )
 
+
 (deffunction generate-new-color (?color1 ?color2 ?color3 ?color4 $?excluded-colors)
  (bind ?available-colors (create$ blue green red yellow orange white black purple))
  (foreach ?exclude ?excluded-colors
@@ -36,7 +37,7 @@
  (bind $?colorsguess (user-first-guess))
  (assert (guess (step ?s) (g $?colorsguess) ))
  (modify ?status (mode computer))
- (printout t "---- GUESS " ?s " ---- " ?colorsguess crlf)
+ (printout t "--- GUESS " ?s " ---- " ?colorsguess crlf)
  (pop-focus)
 )
 
@@ -45,7 +46,7 @@
   ?feedback <- (answer (step ?s) (right-placed 3) (miss-placed 0))
   ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
   =>
-  (printout t "----ANSWER " ?s "---- 3 🔴 - 0 ⚪" crlf)
+  (printout t "----ANSWER " ?s "----: 3 🔴 - 0 ⚪" crlf)
   (retract ?feedback)
   (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4))
   (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?c3 ?newColor)))
@@ -57,7 +58,7 @@
    ?feedback <- (answer (step ?s) (right-placed 2) (miss-placed 0))
    ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
    =>
-   (printout t "----ANSWER " ?s "---- 2 🔴 - 0 ⚪" crlf)
+   (printout t "----ANSWER " ?s "----: 2 🔴 - 0 ⚪" crlf)
    (retract ?feedback)
    (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
    (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
@@ -69,7 +70,7 @@
  ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 0))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
  =>
- (printout t "----ANSWER " ?s "---- 1 🔴 - 0 ⚪" crlf)
+ (printout t "----ANSWER " ?s "----: 1 🔴 - 0 ⚪" crlf)
  (retract ?feedback)
  (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
  (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
@@ -82,7 +83,7 @@
    ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 1))
    ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
    =>
-   (printout t "----ANSWER " ?s "---- 1 🔴 - 1 ⚪" crlf)
+   (printout t "----ANSWER " ?s "----: 1 🔴 - 1 ⚪" crlf)
    (retract ?feedback)
    (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
    (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
@@ -95,7 +96,7 @@
    ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 0))
    ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
    =>
-   (printout t "----ANSWER " ?s "---- 0 🔴 - 0 ⚪" crlf)
+   (printout t "----ANSWER " ?s "----: 0 🔴 - 0 ⚪" crlf)
    (retract ?feedback)
    (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
    (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
@@ -119,7 +120,7 @@
  ?feedback <- (answer (step ?s) (right-placed 2) (miss-placed 2))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
  =>
- (printout t "----ANSWER " ?s "---- 2 🔴 - 2 ⚪" crlf)
+ (printout t "----ANSWER " ?s "----: 2 🔴 - 2 ⚪" crlf)
  (retract ?feedback)
  (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?c4 ?c3)))
  (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?c4 " " ?c3 crlf)
@@ -130,7 +131,7 @@
  ?feedback <- (answer (step ?s) (right-placed 2) (miss-placed 1))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
  =>
- (printout t "----ANSWER " ?s "---- 2 🔴 - 1 ⚪" crlf)
+ (printout t "----ANSWER " ?s "----: 2 🔴 - 1 ⚪" crlf)
  (retract ?feedback)
  (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4))
  (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?c4 ?newColor)))
@@ -142,7 +143,7 @@
  ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 3))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
  =>
- (printout t "----ANSWER " ?s "---- 1 🔴 - 3 ⚪" crlf)
+ (printout t "----ANSWER " ?s "----: 1 🔴 - 3 ⚪" crlf)
  (retract ?feedback)
  (assert (guess (step (+ ?s 1)) (g ?c1 ?c4 ?c3 ?c2)))
  (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c4 " " ?c3 " " ?c2 crlf)
@@ -153,7 +154,7 @@
  ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 2))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
  =>
- (printout t "----ANSWER " ?s "---- 1 🔴 - 2 ⚪" crlf)
+ (printout t "----ANSWER " ?s "----: 1 🔴 - 2 ⚪" crlf)
  (retract ?feedback)
  (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4))
  (assert (guess (step (+ ?s 1)) (g ?c1 ?c4 ?c3 ?newColor)))
@@ -165,7 +166,7 @@
  ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 4))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
  =>
- (printout t "----ANSWER " ?s "---- 0 🔴 - 4 ⚪" crlf)
+ (printout t "----ANSWER " ?s "----: 0 🔴 - 4 ⚪" crlf)
  (retract ?feedback)
  (assert (guess (step (+ ?s 1)) (g ?c4 ?c3 ?c2 ?c1)))
  (printout t "-----GUESS " (+ ?s 1) "---- " ?c4 " " ?c3 " " ?c2 " " ?c1 crlf)
@@ -176,7 +177,7 @@
  ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 3))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
  =>
- (printout t "----ANSWER " ?s "---- 0 🔴 - 3 ⚪" crlf)
+ (printout t "----ANSWER " ?s "----: 0 🔴 - 3 ⚪" crlf)
  (retract ?feedback)
  (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4))
  (assert (guess (step (+ ?s 1)) (g ?c2 ?c3 ?c4 ?newColor)))
@@ -188,7 +189,7 @@
  ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 2))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
  =>
- (printout t "----ANSWER " ?s "---- 0 🔴 - 2 ⚪" crlf)
+ (printout t "----ANSWER " ?s "----: 0 🔴 - 2 ⚪" crlf)
  (retract ?feedback)
  (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
  (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
@@ -201,7 +202,7 @@
  ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 1))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
  =>
- (printout t "----ANSWER " ?s "---- 0 🔴 - 1 ⚪" crlf)
+ (printout t "----ANSWER " ?s "----: 0 🔴 - 1 ⚪" crlf)
  (retract ?feedback)
  (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
  (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
