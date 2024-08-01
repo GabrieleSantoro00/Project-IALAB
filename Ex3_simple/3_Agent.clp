@@ -1,7 +1,16 @@
+
 ;  ---------------------------------------------
 ;  --- Definizione del modulo e dei template ---
 ;  ---------------------------------------------
 (defmodule AGENT (import MAIN ?ALL) (import GAME ?ALL) (export ?ALL))
+
+(deftemplate secret-code
+  (multislot code (allowed-values blue green red yellow orange white black purple) (cardinality 4 4))
+)
+
+(deffacts codice-segreto 
+   (secret-code (code blue green orange purple))
+)
 
 
 (deffunction user-first-guess ()
@@ -210,4 +219,20 @@
  (assert (guess (step (+ ?s 1)) (g ?c1 ?newColor1 ?newColor2 ?newColor3)))
  (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?newColor1 " " ?newColor2 " " ?newColor3 crlf)
 )
+
+
+(defrule for-computer-gameover
+  (declare (salience -15))
+  ?status <- (status (step ?s&:(>= ?s 9)) (mode computer))
+  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
+  ?code <- (secret-code (code ?sc1 ?sc2 ?sc3 ?sc4))
+  (test (or (neq ?c1 ?sc1) (neq ?c2 ?sc2) (neq ?c3 ?sc3) (neq ?c4 ?sc4)))
+=>
+  (printout t "GAME OVER!!" crlf)
+  (printout t "The secret code was: " ?sc1 " " ?sc2 " " ?sc3 " " ?sc4 crlf)
+)
+
+
+
+
 

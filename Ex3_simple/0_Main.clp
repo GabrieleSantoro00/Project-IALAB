@@ -3,7 +3,7 @@
 
 ;I template raccolgono un elenco di aspetti (slot)
 (deftemplate status (slot step)   ;step corrisponde al tentativo
-                    (slot mode (allowed-values human computer))       ;mode computer??????
+                    (slot mode (allowed-values human computer))       
 )
 
 ;Definisce un insieme di fatti iniziali 
