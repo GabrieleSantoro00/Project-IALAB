@@ -12,6 +12,24 @@
    (secret-code (code blue green orange purple))
 )
 
+(defglobal ?*tried-colors* = (create$))
+
+
+(deffunction generate-new-color (?color1 ?color2 ?color3 ?color4 $?excluded-colors)
+  (bind ?available-colors (create$ blue green red yellow orange white black purple))
+  (foreach ?exclude ?excluded-colors
+    (bind ?available-colors (delete-member$ ?available-colors ?exclude))
+  )
+  (bind ?newColor nil)
+  (foreach ?color ?available-colors
+    (if (and (not (member$ ?color (create$ ?color1 ?color2 ?color3 ?color4))) (not (eq ?color ?newColor)))
+      then
+      (bind ?newColor ?color)
+      (return ?newColor)
+    )
+  )
+  (return ?newColor)
+)
 
 (deffunction user-first-guess ()
  (printout t "Please enter your first guess: ")
@@ -19,22 +37,6 @@
  (return (explode$ ?input))
 )
 
-
-(deffunction generate-new-color (?color1 ?color2 ?color3 ?color4 $?excluded-colors)
- (bind ?available-colors (create$ blue green red yellow orange white black purple))
- (foreach ?exclude ?excluded-colors
-   (bind ?available-colors (delete-member$ ?available-colors ?exclude))
- )
- (bind ?newColor nil)
- (foreach ?color ?available-colors
-   (if (and (not (member$ ?color (create$ ?color1 ?color2 ?color3 ?color4))) (not (eq ?color ?newColor)))
-     then
-     (bind ?newColor ?color)
-     (break)
-   )
- )
- (return ?newColor)
-)
 
 
 (defrule human-player
@@ -52,29 +54,35 @@
 
 
 (defrule handle-feedback-3-right-placed-0-miss-placed
-  ?feedback <- (answer (step ?s) (right-placed 3) (miss-placed 0))
-  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
-  =>
-  (printout t "----ANSWER " ?s "----: 3 🔴 - 0 ⚪" crlf)
-  (retract ?feedback)
-  (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4))
-  (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?c3 ?newColor)))
-  ;(assert (new-attempt ?c1 ?c2 ?c3 ?newColor))
-  (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?c3 " " ?newColor crlf))
-
+    ?feedback <- (answer (step ?s) (right-placed 3) (miss-placed 0))
+    ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
+    =>
+    (printout t "----ANSWER " ?s "----: 3 🔴 - 0 ⚪" crlf)
+    (retract ?feedback)
+    (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4 ?*tried-colors*))
+    (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?c3 ?newColor)))
+    (bind ?*tried-colors* (create$ ?*tried-colors* ?newColor))
+    (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?c3 " " ?newColor crlf)
+)
 
 (defrule handle-feedback-2-right-placed-0-miss-placed
-   ?feedback <- (answer (step ?s) (right-placed 2) (miss-placed 0))
-   ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
-   =>
-   (printout t "----ANSWER " ?s "----: 2 🔴 - 0 ⚪" crlf)
-   (retract ?feedback)
+ ?feedback <- (answer (step ?s) (right-placed 2) (miss-placed 0))
+ ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
+ =>
+ (printout t "----ANSWER " ?s "----: 2 🔴 - 0 ⚪" crlf)
+ (retract ?feedback)
+ (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
+ (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
+ (while (or (member$ (create$ ?c1 ?c2 ?newColor1 ?newColor2) ?*tried-colors*)
+            (member$ (create$ ?c1 ?c2 ?newColor2 ?newColor1) ?*tried-colors*)
+            (eq ?newColor1 ?newColor2))
    (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
-   (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
-   (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?newColor1 ?newColor2)))
-   ;(assert (new-attempt ?c1 ?c2 ?newColor1 ?newColor2))
-   (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?newColor1 " " ?newColor2 crlf)
-   )
+   (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1)))
+ (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?newColor1 ?newColor2)))
+ (bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?c2 ?newColor1 ?newColor2)))
+ (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?newColor1 " " ?newColor2 crlf)
+)
+
 (defrule handle-feedback-1-right-placed-0-miss-placed
  ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 0))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
@@ -88,19 +96,24 @@
  ;(assert (new-attempt ?c1 ?newColor1 ?newColor2 ?newColor3))
  (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?newColor1 " " ?newColor2 " " ?newColor3 crlf)
  )
- (defrule handle-feedback-1-right-placed-1-miss-placed
-   ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 1))
-   ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
-   =>
-   (printout t "----ANSWER " ?s "----: 1 🔴 - 1 ⚪" crlf)
-   (retract ?feedback)
+
+
+(defrule handle-feedback-1-right-placed-1-miss-placed
+ ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 1))
+ ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
+ =>
+ (printout t "----ANSWER " ?s "----: 1 🔴 - 1 ⚪" crlf)
+ (retract ?feedback)
+ (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
+ (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
+ (while (member$ (create$ ?c1 ?newColor1 ?newColor2 ?c4) ?*tried-colors*)
    (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
-   (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
-   (bind ?newColor3 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1 ?newColor2))
-   (assert (guess (step (+ ?s 1)) (g ?c1 ?newColor1 ?newColor2 ?newColor3)))
-   ;(assert (new-attempt ?c1 ?newColor1 ?newColor2 ?newColor3))
-   (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?newColor1 " " ?newColor2 " " ?newColor3 crlf)
-   )
+   (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1)))
+ (assert (guess (step (+ ?s 1)) (g ?c1 ?newColor1 ?newColor2 ?c4)))
+ (bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?newColor1 ?newColor2 ?c4)))
+ (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?newColor1 " " ?newColor2 " " ?c4 crlf)
+)
+
 (defrule handle-feedback-0-right-placed-0-miss-placed
    ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 0))
    ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
@@ -177,8 +190,8 @@
  =>
  (printout t "----ANSWER " ?s "----: 0 🔴 - 4 ⚪" crlf)
  (retract ?feedback)
- (assert (guess (step (+ ?s 1)) (g ?c4 ?c3 ?c2 ?c1)))
- (printout t "-----GUESS " (+ ?s 1) "---- " ?c4 " " ?c3 " " ?c2 " " ?c1 crlf)
+ (assert (guess (step (+ ?s 1)) (g ?c2 ?c3 ?c4 ?c1)))
+ (printout t "-----GUESS " (+ ?s 1) "---- " ?c2 " " ?c3 " " ?c4 " " ?c1 crlf)
 )
 
 
