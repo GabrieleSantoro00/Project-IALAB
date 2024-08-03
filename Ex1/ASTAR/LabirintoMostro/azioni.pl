@@ -1,19 +1,20 @@
-:- dynamic(martello/1).
-:- dynamic(bloccoDiGhiaccio/1).
-:- dynamic(gemma/1).
-:- dynamic(mostriciattolo/1).
-:- dynamic(occupata/1).
-:- dynamic(portale/1).
-:- dynamic(num_colonne/1).
-:- dynamic(num_righe/1).
-
-% Definizione dello stato del gioco
-stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello) :-
+% Predicato per l'acquisizione dello stato iniziale del labirinto
+iniziale(StatoIniziale) :-
     mostro(Mostro),
     findall(G, gemma(G), Gemme),
     findall(B, bloccoDiGhiaccio(B), BlocchiDiGhiaccio),
     martello(Martello),
-    (ha_preso_martello(Mostro) -> HaMartello = true ; HaMartello = false).
+    HaMartello = false,
+    StatoIniziale = (Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello).
+
+
+% Predicato per l'acquisizione dello stato finale del labirinto
+finale(Mostro) :-
+  portale(Mostro).
+
+
+arrivoAlPortale((Mostro, _, _, _, _)) :- finale(Mostro).
+
 
 % Definizione delle direzioni di movimento
 direzione(nord, pos(R, C), pos(R2, C)) :- R2 is R - 1, R2 > 0.
@@ -21,152 +22,133 @@ direzione(sud, pos(R, C), pos(R2, C)) :- num_righe(NR), R2 is R + 1, R2 =< NR.
 direzione(ovest, pos(R, C), pos(R, C2)) :- C2 is C - 1, C2 > 0.
 direzione(est, pos(R, C), pos(R, C2)) :- num_colonne(NC), C2 is C + 1, C2 =< NC.
 
-% Verifica se una posizione è valida
+
+% Predicati che estraggono le posizioni dei vari oggetti del labirinto dalla tupla Stato attuale.
+
+
+posizione_mostro((Mostro, _, _, _, _), Mostro).
+
+
+posizione_gemme((_, Gemme, _, _, _), Gemme).
+
+
+posizione_martello((_, _, _, Martello, _), Martello).
+
+
+posizione_blocco_di_ghiaccio((_, _, BlocchiDiGhiaccio, _, _), BlocchiDiGhiaccio).
+
+
+ha_martello((_, _, _, _, HaMartello), HaMartello).
+
+
+muovi_tutte_le_direzioni((StatoIniziale, Cammino), ListaStatiFinali) :-
+  muovi_tutti_gli_oggetti(nord, StatoIniziale, StatoFinaleNord),
+  %writeln("StatoFinaleNord: "), writeln(StatoFinaleNord),
+  muovi_tutti_gli_oggetti(sud, StatoIniziale, StatoFinaleSud),
+  %writeln("StatoFinaleSud: "), writeln(StatoFinaleSud),
+  muovi_tutti_gli_oggetti(ovest, StatoIniziale, StatoFinaleOvest),
+  %writeln("StatoFinaleOvest: "), writeln(StatoFinaleOvest),
+  muovi_tutti_gli_oggetti(est, StatoIniziale, StatoFinaleEst),
+  %writeln("StatoFinaleEst: "), writeln(StatoFinaleEst),
+  ListaStatiFinali = [(StatoFinaleNord, [nord | Cammino]), (StatoFinaleSud, [sud | Cammino]), (StatoFinaleOvest, [ovest | Cammino]), (StatoFinaleEst, [est | Cammino])].
+
+
+% Predicato principale per muovere tutti gli oggetti nella direzione specificata
+muovi_tutti_gli_oggetti(Direzione, StatoIniziale, StatoFinale) :-
+    ottieni_oggetti_mobili(StatoIniziale, OggettiMobili),
+    muovi_oggetto_in_direzione(Direzione, OggettiMobili, StatoIniziale, StatoFinale).
+
+
+% Ottieni tutti gli oggetti mobili nel gioco
+ottieni_oggetti_mobili(Stato, (Mostro, Gemme)) :-
+    posizione_mostro(Stato, Mostro),
+    posizione_gemme(Stato, Gemme).
+
+
+muovi_oggetto_in_direzione(Direzione, (Mostro, Gemme), StatoIniziale, StatoFinale) :-
+    muovi_gemme(Direzione, Gemme, StatoIniziale, StatoIntermedio),
+    (muovi_mostro(Direzione, Mostro, StatoIntermedio, StatoFinale) ->
+        true
+    ;
+        StatoFinale = StatoIntermedio
+    ).
+
+
+muovi_gemme(_, [], Stato, Stato).
+muovi_gemme(Direzione, [Gemma|AltreGemme], StatoIniziale, StatoFinale) :-
+    (muovi_gemma(Direzione, Gemma, StatoIniziale, StatoIntermedio) ->
+        muovi_gemme(Direzione, AltreGemme, StatoIntermedio, StatoFinale)
+    ;
+        muovi_gemme(Direzione, AltreGemme, StatoIniziale, StatoFinale)
+    ).
+
+
+%muovi_gemma(_, _, Stato, Stato). % Caso base: se non è possibile muovere ulteriormente la gemma, restituisci lo stato attuale
+muovi_gemma(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
+    %write('Muovo la gemma da '), write(PosizioneCorrente), write(' in direzione '), writeln(Direzione),
+    (direzione(Direzione, PosizioneCorrente, NuovaPos),
+        posizione_valida(NuovaPos, StatoIniziale) ->
+        aggiorna_stato(PosizioneCorrente, NuovaPos, StatoIniziale, StatoIntermedio),
+        muovi_gemma(Direzione, NuovaPos, StatoIntermedio, StatoFinale)
+    ;
+        StatoFinale = StatoIniziale
+    ).
+
+
+posizione_valida(Posizione, (Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello)) :-
+    Posizione \= Mostro,
+    \+memberchk(Posizione, BlocchiDiGhiaccio),
+    \+occupata(Posizione),
+    \+memberchk(Posizione, Gemme).
+
+
 posizione_valida(pos(R, C)) :-
     num_righe(NR), num_colonne(NC),
     R > 0, R =< NR,
     C > 0, C =< NC,
-    \+ occupata(pos(R, C)).
+    \+occupata(pos(R, C)).
 
-% Estrae la posizione del mostro
-posizione_mostro(mostro(Pos), Pos).
 
-% Estrae la posizione del martello
-posizione_martello(Pos) :- martello(Pos).
+aggiorna_stato(PosizioneCorrente, NuovaPos, (Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale):-
+    select(PosizioneCorrente, Gemme, GemmeSenzaCorrente), % Rimuove la posizione corrente dalla lista delle gemme
+    StatoFinale = (Mostro, [NuovaPos|GemmeSenzaCorrente], BlocchiDiGhiaccio, Martello, HaMartello). % Aggiunge la nuova posizione alla lista delle gemme
 
-% Verifica se il mostro ha preso il martello
-ha_preso_martello(Mostro) :-
-    posizione_mostro(Mostro, Pos),
-    posizione_martello(Pos).
+
+%muovi_mostro(_, _, Stato, Stato):- !.
+% Predicato principale per muovere il mostro
+muovi_mostro(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
+  %write('Muovo il mostro da '), write(PosizioneCorrente), write(' in direzione '), writeln(Direzione),
+  (direzione(Direzione, PosizioneCorrente, NuovaPos),
+      posizione_valida(NuovaPos, StatoIniziale) ->
+      (aggiorna_stato_mostro(PosizioneCorrente, NuovaPos, StatoIniziale, StatoIntermedio),
+      muovi_mostro(Direzione, NuovaPos, StatoIntermedio, StatoFinale))
+  ;
+      StatoFinale = StatoIniziale
+  ).
+
+
+% Predicato per aggiornare lo stato del mostro
+aggiorna_stato_mostro(PosizioneCorrente, NuovaPos, (Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale) :-
+  ( NuovaPos = Martello ->
+      NuovoHaMartello = true
+  ; 
+      NuovoHaMartello = HaMartello
+  ),
+  ( NuovoHaMartello ->
+      rompi_ghiaccio(NuovaPos, BlocchiDiGhiaccio, NuoviBlocchiDiGhiaccio),
+      NuovoStato = (NuovaPos, Gemme, NuoviBlocchiDiGhiaccio, Martello, NuovoHaMartello)
+  ;
+      \+ memberchk(NuovaPos, BlocchiDiGhiaccio),
+      NuovoStato = (NuovaPos, Gemme, BlocchiDiGhiaccio, Martello, NuovoHaMartello)
+  ),
+  StatoFinale = NuovoStato.
+
 
 % Predicato per rompere il ghiaccio
 rompi_ghiaccio(Posizione, BlocchiDiGhiaccio, NuoviBlocchiDiGhiaccio) :-
-    (   memberchk(Posizione, BlocchiDiGhiaccio),
+    (   
+      memberchk(Posizione, BlocchiDiGhiaccio) ->
         select(Posizione, BlocchiDiGhiaccio, NuoviBlocchiDiGhiaccio)
-    ->  true
-    ;   NuoviBlocchiDiGhiaccio = BlocchiDiGhiaccio
+    ;
+        NuoviBlocchiDiGhiaccio = BlocchiDiGhiaccio
     ).
-
-% Ottieni tutti gli oggetti mobili nel gioco
-ottieni_oggetti_mobili(OggettiMobili) :-
-    mostro(Mostro),
-    findall(gemma(G), gemma(G), Gemme),
-    append(Gemme, [mostro(Mostro)], OggettiMobili).
-
-% Muovi tutti gli oggetti nella direzione specificata
-muovi_tutti_gli_oggetti(Direzione, StatoIniziale, StatoFinale) :-
-    ottieni_oggetti_mobili(OggettiMobili),
-    (
-        Direzione = nord, sort(1, @=<, OggettiMobili, OggettiMobiliOrdinati);
-        Direzione = sud, sort(1, @>=, OggettiMobili, OggettiMobiliOrdinati);
-        Direzione = ovest, sort(1, @=<, OggettiMobili, OggettiMobiliOrdinati);
-        Direzione = est, sort(1, @>=, OggettiMobili, OggettiMobiliOrdinati)
-    ),
-    muovi_oggetti(OggettiMobiliOrdinati, Direzione, StatoIniziale, StatoFinale).
-
-% Predicato principale per muovere tutti gli oggetti nella direzione specificata
-muovi_oggetti([], _, Stato, Stato):-!.
-muovi_oggetti([Oggetto|Resto], Direzione, StatoIniziale, StatoFinale) :-
-    muovi_oggetto_in_direzione(Direzione, Oggetto, StatoIniziale, StatoIntermedio),  %togliere questa parte
-    muovi_oggetti(Resto, Direzione, StatoIntermedio, StatoFinale).
-
-muovi_oggetto_in_direzione(Direzione, gemma(PosIniziale), stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale) :-
- muovi_gemma(Direzione, PosIniziale, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale).
-
-/*muovi_gemma(Direzione, PosizioneCorrente, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale) :-
-     direzione(Direzione, PosizioneCorrente, NuovaPos),
-     posizione_valida(NuovaPos),
-     StatoIniziale = stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
-     Mostro = mostro(PosMostro),
-     (   NuovaPos \= PosMostro,
-         \+ memberchk(NuovaPos, BlocchiDiGhiaccio),
-         \+ occupata(NuovaPos),
-         select(PosizioneCorrente, Gemme, GemmeSenzaCorrente),
-         StatoFinale = stato(Mostro, [NuovaPos|GemmeSenzaCorrente], BlocchiDiGhiaccio, Martello, HaMartello)
-     ;   StatoFinale = StatoIniziale
-     ).
-*/
-muovi_gemma(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
-    direzione(Direzione, PosizioneCorrente, NuovaPos),
-    posizione_valida(NuovaPos, StatoIniziale),
-    !, % Se posizione_valida fallisce, non tentare alternative
-    aggiorna_stato_con_nuova_pos_gemma(PosizioneCorrente, NuovaPos, StatoIniziale, StatoIntermedio),
-    muovi_gemma(Direzione, NuovaPos, StatoIntermedio, StatoFinale). % Chiamata ricorsiva con la nuova posizione
-muovi_gemma(_, _, Stato, Stato). % Caso base: se non è possibile muovere ulteriormente la gemma, restituisci lo stato attuale
-
-posizione_valida(Posizione, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello)) :-
-    Mostro = mostro(PosMostro),
-    Posizione \= PosMostro,
-    \+ memberchk(Posizione, BlocchiDiGhiaccio),
-    \+occupata(Posizione),
-    \+occupataDaAltraGemma(Posizione, Gemme).
-
-occupataDaAltraGemma(Posizione, Gemme) :-
-    memberchk(Posizione, Gemme).
-
-aggiorna_stato_con_nuova_pos_gemma(PosizioneCorrente, NuovaPos, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale) :-
-    select(PosizioneCorrente, Gemme, GemmeSenzaCorrente), % Rimuove la posizione corrente dalla lista delle gemme
-    StatoFinale = stato(Mostro, [NuovaPos|GemmeSenzaCorrente], BlocchiDiGhiaccio, Martello, HaMartello). % Aggiunge la nuova posizione alla lista delle gemme
-
-muovi_gemma(_, PosizioneCorrente, stato(Mostro, gemma(PosizioneCorrente), BlocchiDiGhiaccio, Martello, HaMartello),
-             stato(Mostro, gemma(PosizioneCorrente), BlocchiDiGhiaccio, Martello, HaMartello)).
-
-muovi_oggetto_in_direzione(Direzione, mostro(PosIniziale), stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale) :-
-    muovi_mostro(Direzione, PosIniziale, stato(Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale).
-
-% Muovi il mostro nella direzione specificata
-/*muovi_mostro(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
-    direzione(Direzione, PosizioneCorrente, NuovaPos),
-    posizione_valida(NuovaPos),
-    StatoIniziale = stato(_, Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
-    \+ memberchk(NuovaPos, Gemme),
-    \+ occupata(NuovaPos),
-    (
-        NuovaPos = Martello ->
-        (retract(martello(Martello)), HaMartello1 = true)
-        ;
-        HaMartello1 = HaMartello
-    ),
-    (
-        HaMartello1 ->
-        (
-            rompi_ghiaccio(NuovaPos, BlocchiDiGhiaccio, NuoviBlocchiDiGhiaccio),
-            (   memberchk(NuovaPos, NuoviBlocchiDiGhiaccio) ->
-                muovi_mostro(Direzione, NuovaPos, stato(mostro(NuovaPos), Gemme, NuoviBlocchiDiGhiaccio, Martello, HaMartello1), StatoFinale)
-                ;
-                muovi_mostro(Direzione, NuovaPos, stato(mostro(NuovaPos), Gemme, NuoviBlocchiDiGhiaccio, Martello, HaMartello1), StatoFinale)
-            )
-        )
-        ;
-        muovi_mostro(Direzione, NuovaPos, stato(mostro(NuovaPos), Gemme, BlocchiDiGhiaccio, Martello, HaMartello1), StatoFinale)
-    ).
-
-muovi_mostro(_, PosizioneCorrente, stato(mostro(PosizioneCorrente), Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
-             stato(mostro(PosizioneCorrente), Gemme, BlocchiDiGhiaccio, Martello, HaMartello)).*/
-muovi_mostro(Direzione, PosizioneCorrente, StatoIniziale, StatoFinale) :-
-    direzione(Direzione, PosizioneCorrente, NuovaPos),
-    posizione_valida(NuovaPos),
-    StatoIniziale = stato(_, Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
-    \+ memberchk(NuovaPos, Gemme),
-    \+ occupata(NuovaPos),
-    (
-        NuovaPos = Martello ->
-        (retract(martello(Martello)), HaMartello1 = true)
-        ;
-        HaMartello1 = HaMartello
-    ),
-    (
-        HaMartello1 ->
-        (
-            rompi_ghiaccio(NuovaPos, BlocchiDiGhiaccio, NuoviBlocchiDiGhiaccio),
-            muovi_mostro(Direzione, NuovaPos, stato(mostro(NuovaPos), Gemme, NuoviBlocchiDiGhiaccio, Martello, HaMartello1), StatoFinale)
-        )
-        ;
-        (
-            \+ memberchk(NuovaPos, BlocchiDiGhiaccio), % Verifica che la nuova posizione non sia un blocco di ghiaccio
-            muovi_mostro(Direzione, NuovaPos, stato(mostro(NuovaPos), Gemme, BlocchiDiGhiaccio, Martello, HaMartello), StatoFinale)
-        )
-    ).
-
-muovi_mostro(_, PosizioneCorrente, stato(mostro(PosizioneCorrente), Gemme, BlocchiDiGhiaccio, Martello, HaMartello),
-             stato(mostro(PosizioneCorrente), Gemme, BlocchiDiGhiaccio, Martello, HaMartello)).

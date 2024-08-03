@@ -64,11 +64,10 @@ stampa_righe(_, _, _).
 stampa_colonne(_, Col, MaxCol) :- Col > MaxCol, !.
 stampa_colonne(Riga, Col, MaxCol) :-
     ( occupata(pos(Riga, Col)) -> format(' X ');
-      iniziale(pos(Riga, Col)) -> format(' I ');
-      finale(pos(Riga, Col)) -> format(' F ');
+      portale(pos(Riga, Col)) -> format(' P ');
       mostro(pos(Riga, Col)) -> format(' M ');
       gemma(pos(Riga, Col)) -> format(' G ');
-      ghiaccio(pos(Riga, Col)) -> format(' B ');
+      bloccoDiGhiaccio(pos(Riga, Col)) -> format(' B ');
       martello(pos(Riga, Col)) -> format(' H ');
       format(' O ')
     ),
