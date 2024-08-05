@@ -23,18 +23,11 @@ astar_aux([( _, _, Stato, Cammino)| _], _, StatoFinale, Cammino) :-
   writeln(''), writeln('Cammino:'), writeln(Cammino),
   arrivoAlPortale(Stato),!.
 astar_aux([(F, H, Stato, Cammino)| Coda], Visitati, StatoFinale, CamminoFinale) :-
-  %writeln(''), writeln('Stato:'), writeln(Stato),
-  %writeln(''), writeln('Generazione nuovi stati:'),
-  generaNuoviStati((Stato, Cammino), ListaNuoviStati), %writeln('ListaNuoviStati: '), writeln(ListaNuoviStati),
-  %writeln(''), writeln('Confronto con stati già visitati:'),
-  differenza(ListaNuoviStati, Visitati, ListaNuoviStatiDaVisitare), %writeln('ListaNuoviStatiDaVisitare: '), writeln(ListaNuoviStatiDaVisitare),
-  %writeln(''), writeln('Calcolo F per nuovi stati:'),
-  calcolaFNuoviStati(ListaNuoviStatiDaVisitare, StatoFinale, ListaNuoviStatiConF), %writeln('ListaNuoviStatiConF: '), writeln(ListaNuoviStatiConF),
-  %writeln(''), writeln('Inserimento ordinato:'),
+  generaNuoviStati((Stato, Cammino), ListaNuoviStati),
+  differenza(ListaNuoviStati, Visitati, ListaNuoviStatiDaVisitare),
+  calcolaFNuoviStati(ListaNuoviStatiDaVisitare, StatoFinale, ListaNuoviStatiConF),
   inserisci_lista_ordinata(ListaNuoviStatiConF, Coda, NuovaCoda),
-  %writeln(''), writeln('Aggiornamento stati visitati:'),
   append(ListaNuoviStatiDaVisitare, Visitati, NuoviVisitati), 
-  %writeln(''), writeln('Prossimi stati:'), writeln(NuovaCoda),
   astar_aux(NuovaCoda, [(Stato, Cammino) | NuoviVisitati], StatoFinale, CamminoFinale).
 
 
