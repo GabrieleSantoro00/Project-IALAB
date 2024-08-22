@@ -2,14 +2,14 @@
 :- set_prolog_flag(answer_write_options, [max_depth(0)]).
 
 astar(Cammino) :-
-    esegui(),
     iniziale(NodoIniziale),
     findall(NodoFinale, finale(NodoFinale), ListaNodiFinale),
     euristica(NodoIniziale, ListaNodiFinale, H),
     G is 0,
     F is H + G,
     astar_aux([(F, H, NodoIniziale, [])], [], ListaNodiFinale, CamminoRovesciato),
-    inverti(CamminoRovesciato, Cammino).
+    inverti(CamminoRovesciato, Cammino),
+    esegui().
 
 
 euristica(Nodo, ListaNodiFinali, Valore) :-
@@ -50,10 +50,16 @@ differenza([(Nodo, Cammino) | Tail], Visitati, [(Nodo, Cammino) | RisTail]) :-
 
 calcolaFNuoviStati([], _, []).
 calcolaFNuoviStati([(Nodo, Cammino) | Coda], ListaNodiFinale, [(F, H, Nodo, Cammino) | ListaNuoviStatiConF]) :-
+    costo(_, _, IncrementoG),
+    length(Cammino, LunghezzaCammino),
+    G is LunghezzaCammino + IncrementoG,
     euristica(Nodo, ListaNodiFinale, H),
-    length(Cammino, G),
     F is G + H,
     calcolaFNuoviStati(Coda, ListaNodiFinale, ListaNuoviStatiConF).
+
+
+costo(_,_,Costo) :- Costo is 1.
+
 
 inserisci_ordinato(E, [], [E]).
 inserisci_ordinato((F, H, Nodo, Cammino), [(F1, H1, Nodo1, Cammino1) | Coda], [(F, H, Nodo, Cammino), (F1, H1, Nodo1, Cammino1) | Coda]) :-
