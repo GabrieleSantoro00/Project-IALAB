@@ -14,22 +14,22 @@ partitaInTrasferta(Squadra2, Squadra1) :- partitaInCasa(Squadra1, Squadra2).
 citta(milano; torino; roma; napoli; firenze; bergamo; bologna; genova; udine; lecce; reggio_emilia; cagliari; verona).
 
 %   Associazione delle squadre con la citta di riferimento
-provieneDa(inter, milano).
-provieneDa(milan, milano).
-provieneDa(juventus, torino).
-provieneDa(torino, torino).
-provieneDa(roma, roma).
-provieneDa(lazio, roma).
-provieneDa(napoli, napoli).
-provieneDa(fiorentina, firenze).
-provieneDa(atalanta, bergamo).
-provieneDa(bologna, bologna).
-provieneDa(genoa, genova).
-provieneDa(udinese, udine).
-provieneDa(lecce, lecce).
-provieneDa(sassuolo, reggio_emilia).
-provieneDa(cagliari, cagliari).
-provieneDa(verona, verona).
+dove(inter, milano).
+dove(milan, milano).
+dove(juventus, torino).
+dove(torino, torino).
+dove(roma, roma).
+dove(lazio, roma).
+dove(napoli, napoli).
+dove(fiorentina, firenze).
+dove(atalanta, bergamo).
+dove(bologna, bologna).
+dove(genoa, genova).
+dove(udinese, udine).
+dove(lecce, lecce).
+dove(sassuolo, reggio_emilia).
+dove(cagliari, cagliari).
+dove(verona, verona).
 
 %   In una giornata (Giornata), ci sono esattamente 8 squadre in casa
 8  {giocaInCasa(Squadra, Giornata) : squadra(Squadra)}  8 :- giornata(Giornata).
@@ -59,8 +59,8 @@ dallaStessaCitta(Squadra1, Squadra2) :-
     squadra(Squadra2),
     citta(Citta),
     Squadra1 <> Squadra2, 
-    provieneDa(Squadra1, Citta),
-    provieneDa(Squadra2, Citta).
+    dove(Squadra1, Citta),
+    dove(Squadra2, Citta).
 
 %   Una partita si gioca in un solo giorno
 1   {partita(Squadra1, Squadra2, Giornata) : giornata(Giornata)}   1 :- 
@@ -95,6 +95,6 @@ derby(Squadra1, Squadra2) :-
 %   RISULTATI
 risultato(Squadra1, Squadra2, Giornata, Citta) :-
     partita(Squadra1, Squadra2, Giornata),
-    provieneDa(Squadra1, Citta).
+    dove(Squadra1, Citta).
 
 #show risultato/4.
