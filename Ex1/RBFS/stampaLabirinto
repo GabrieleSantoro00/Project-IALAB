@@ -5,10 +5,6 @@
 :- dynamic iniziale/1.
 :- dynamic finale/1.
 :- dynamic occupata/1.
-:- dynamic mostro/1.
-:- dynamic gemma/1.
-:- dynamic ghiaccio/1.
-:- dynamic martello/1.
 
 % Legge il file e carica i fatti nel database
 leggi_file(File) :-
@@ -64,11 +60,8 @@ stampa_righe(_, _, _).
 stampa_colonne(_, Col, MaxCol) :- Col > MaxCol, !.
 stampa_colonne(Riga, Col, MaxCol) :-
     ( occupata(pos(Riga, Col)) -> format(' X ');
-      portale(pos(Riga, Col)) -> format(' P ');
-      mostro(pos(Riga, Col)) -> format(' M ');
-      gemma(pos(Riga, Col)) -> format(' G ');
-      bloccoDiGhiaccio(pos(Riga, Col)) -> format(' B ');
-      martello(pos(Riga, Col)) -> format(' H ');
+      iniziale(pos(Riga, Col)) -> format(' I ');
+      finale(pos(Riga, Col)) -> format(' F ');
       format(' O ')
     ),
     NextCol is Col + 1,
