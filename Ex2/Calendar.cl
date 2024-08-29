@@ -1,49 +1,100 @@
-% Squadre e città
-squadra(atalanta; bologna; cagliari; empoli; fiorentina; frosinone; genoa; inter; juventus; lazio; lecce; milan; napoli; roma; salernitana; sassuolo). 
-citta(bergamo; bologna; cagliari; empoli; firenze; frosinone; genova; milano; torino; roma; lecce; napoli; salerno; sassuolo).
+%   Definizione delle squadre
+squadra(inter; milan; juventus; torino; roma; lazio; napoli; fiorentina; atalanta; bologna; genoa; udinese; lecce; sassuolo; cagliari; verona).
 
-% Partite in casa
-partita_in_casa(atalanta, bergamo).
-partita_in_casa(bologna, bologna).
-partita_in_casa(cagliari, cagliari).
-partita_in_casa(empoli, empoli).
-partita_in_casa(fiorentina, firenze).
-partita_in_casa(frosinone, frosinone).
-partita_in_casa(genoa, genova).
-partita_in_casa(inter, milano).
-partita_in_casa(juventus, torino).
-partita_in_casa(lazio, roma).
-partita_in_casa(lecce, lecce).
-partita_in_casa(milan, milano).
-partita_in_casa(napoli, napoli).
-partita_in_casa(roma, roma).
-partita_in_casa(salernitana, salerno).
-partita_in_casa(sassuolo, sassuolo).
+%   Definizione di 30 giornate
+giornata(1..30).
 
-% Partite in trasferta
-partita_in_trasferta(S, C) :- squadra(S), citta(C), not partita_in_casa(S, C).
+%   Definizione di 15 partite di andata (una squadra gioca 1 volta in casa e 1 in trasferta contro tutte le altre squadre)
+15  {partitaInCasa(Squadra1, Squadra2) : squadra(Squadra2)}  15 :- squadra(Squadra1).
+    
+%   Definizione delle restanti partite in trasferta
+partitaInTrasferta(Squadra2, Squadra1) :- partitaInCasa(Squadra1, Squadra2).
 
-% Giorni
-giorno(1..30).
+%   Definizione del concetto di citta
+citta(milano; torino; roma; napoli; firenze; bergamo; bologna; genova; udine; lecce; reggio_emilia; cagliari; verona).
 
-% Nuova definizione delle partite per garantire che ogni squadra giochi contro ogni altra sia in casa che in trasferta
-1 { partita(S1, S2, G) : giorno(G) } 1 :- squadra(S1), squadra(S2), S1 != S2.
-1 { partita(S2, S1, G) : giorno(G) } 1 :- squadra(S1), squadra(S2), S1 != S2.
+%   Associazione delle squadre con la citta di riferimento
+provieneDa(inter, milano).
+provieneDa(milan, milano).
+provieneDa(juventus, torino).
+provieneDa(torino, torino).
+provieneDa(roma, roma).
+provieneDa(lazio, roma).
+provieneDa(napoli, napoli).
+provieneDa(fiorentina, firenze).
+provieneDa(atalanta, bergamo).
+provieneDa(bologna, bologna).
+provieneDa(genoa, genova).
+provieneDa(udinese, udine).
+provieneDa(lecce, lecce).
+provieneDa(sassuolo, reggio_emilia).
+provieneDa(cagliari, cagliari).
+provieneDa(verona, verona).
 
-% Vincolo sulle partite consecutive in casa o trasferta
-:- squadra(S), giorno(G), partita(S, _, G), partita(S, _, G+1), partita(S, _, G+2), partita_in_casa(S, _).
-:- squadra(S), giorno(G), partita(_, S, G), partita(_, S, G+1), partita(_, S, G+2).
+%   In una giornata (Giornata), ci sono esattamente 8 squadre in casa
+8  {giocaInCasa(Squadra, Giornata) : squadra(Squadra)}  8 :- giornata(Giornata).
 
-% Aggiustamento del vincolo sul numero massimo di partite per giorno per distribuire equamente le partite
-:- giorno(G), #count{S1, S2 : partita(S1, S2, G)} > 8.
+%   In una giornata (Giornata), ci sono esattamente 8 squadre in trasferta
+8  {giocaInTrasferta(Squadra, Giornata) : squadra(Squadra)}  8 :- giornata(Giornata).
 
-% Vincolo sulle partite in casa condivise nella stessa città
-:- partita_in_casa(S1, C), partita_in_casa(S2, C), S1 != S2, giorno(G), partita(S1, _, G), partita(S2, _, G), not derby(S1, S2), not derby(S2, S1).
+%   Una squadra non può giocare contro sé stessa
+:-  squadra(Squadra), partitaInCasa(Squadra, Squadra).
+:-  squadra(Squadra), partitaInTrasferta(Squadra, Squadra).
 
-% Definizione dei derby
-derby(inter, milan).
-derby(milan, inter).
-derby(lazio, roma).
-derby(roma, lazio).
+%   Una squadra gioca in casa nella giornata Giornata
+giocaInCasa(Squadra1, Giornata) :-
+    squadra(Squadra1), 
+    giornata(Giornata),
+    partita(Squadra1, Squadra2, Giornata).
 
-#show partita/3.
+%   Una squadra gioca in trasferta nella giornata Giornata
+giocaInTrasferta(Squadra1, Giornata) :-
+    squadra(Squadra1),
+    giornata(Giornata),
+    partita(Squadra2, Squadra1, Giornata).
+
+%   Definizione delle squadre della stessa citta
+dallaStessaCitta(Squadra1, Squadra2) :-
+    squadra(Squadra1),
+    squadra(Squadra2),
+    citta(Citta),
+    Squadra1 <> Squadra2, 
+    provieneDa(Squadra1, Citta),
+    provieneDa(Squadra2, Citta).
+
+%   Una partita si gioca in un solo giorno
+1   {partita(Squadra1, Squadra2, Giornata) : giornata(Giornata)}   1 :- 
+    partitaInCasa(Squadra1, Squadra2), 
+    Squadra1 <> Squadra2,
+    partitaInTrasferta(Squadra2, Squadra1).
+
+%   Due squadre che appartengono alla stessa citta e condividono la stessa struttura di gioco non possono giocare entrambe in casa nella stessa giornata.
+giocaInTrasferta(Squadra1, Giornata) :-
+    squadra(Squadra1),
+    squadra(Squadra2),
+    giornata(Giornata),
+    dallaStessaCitta(Squadra1, Squadra2),
+    Squadra1 <> Squadra2, 
+    giocaInCasa(Squadra2, Giornata). 
+
+%   Il derby è una partita giocata tra squadre della stessa citta
+derby(Squadra1, Squadra2) :- 
+    partita(Squadra1, Squadra2, Giornata), 
+    Squadra1 <> Squadra2, 
+    dallaStessaCitta(Squadra1, Squadra2).
+
+%   Una squadra non gioca in casa 2 volte di fila
+:-  squadra(Squadra1), partita(Squadra1, Squadra2, Giornata), partita(Squadra1, Squadra3, Giornata), Squadra1 <> Squadra2, Squadra2 <> Squadra3.
+
+%   Una squadra non gioca in trasferta 2 volte di fila
+:-  squadra(Squadra1), partita(Squadra2, Squadra1, Giornata), partita(Squadra3, Squadra1, Giornata), Squadra1 <> Squadra2, Squadra2 <> Squadra3.
+
+%   Una squadra gioca o in casa o in trasferta, non entrambe
+:-  squadra(Squadra1), giornata(Giornata), giocaInCasa(Squadra1, Giornata), giocaInTrasferta(Squadra1, Giornata).
+
+%   RISULTATI
+risultato(Squadra1, Squadra2, Giornata, Citta) :-
+    partita(Squadra1, Squadra2, Giornata),
+    provieneDa(Squadra1, Citta).
+
+#show risultato/4.
