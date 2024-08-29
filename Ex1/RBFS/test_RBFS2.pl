@@ -1,4 +1,4 @@
-:- ['azioni'], ['labirinto.pl'], ['stampaLabirinto'].
+:- ['azioni'], ['labirinto'], ['stampaLabirinto'].
 :- set_prolog_flag(answer_write_options, [max_depth(0)]).
 
 rbfs(Cammino):-
@@ -64,6 +64,7 @@ inserisci_ordinato((NuovoNodo, FLimit, FValue, CamminoAttuale), [(VecchioNuovoNo
 
 
 estraiValoriPrimoNodo([(PrimoNodo, _, FValue, CamminoNodo)|ListaNuoviNodi], FValue, PrimoNodo, CamminoNodo).
+
 
 estraiValoriSecondoNodo([], inf, _, _):- !.
 estraiValoriSecondoNodo([_], inf, _, _):- !.
