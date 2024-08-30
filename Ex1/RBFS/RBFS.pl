@@ -5,48 +5,52 @@
 rbfs():-
   statistics(cputime, Start),
   iniziale(NodoIniziale),
-  finale(NodoFinale),
-  euristica(NodoIniziale, NodoFinale, H),
+  findall(NodoFinale, finale(NodoFinale), ListaNodiFinali),
+  euristica(NodoIniziale, ListaNodiFinali, H),
   G is 0,
   F is G + H,
-  rbfs_aux(([NodoIniziale,[]], F), 9999, NodoFinale, [ResNode, ResF, ResPath]),
+  rbfs_aux(([NodoIniziale,[]], F), 9999, ListaNodiFinali, [ResNode, ResF, ResPath]),
   statistics(cputime, Stop),
   write("Nodo iniziale: "), writeln(NodoIniziale),
-  write("Nodo finale: "), writeln(NodoFinale),
+  write("Nodo finale: "), writeln(ResNode),
   write("Percorso: "), writeln(ResPath),
   write("Tempo di esecuzione: "), T is Stop - Start, writeln(T),
-  write("").
+  write(""),
   esegui().
 
 
-euristica(pos(R1,C1), pos(R2,C2), Valore):-
-  DistanzaR is abs(R1 - R2),
-  DistanzaC is abs(C1 - C2),
-  Valore is DistanzaR + DistanzaC.
+euristica(Nodo, ListaNodiFinali, Valore) :-
+    findall(H, (member(NodoFinale, ListaNodiFinali), distanza(Nodo, NodoFinale, H)), Distanze),
+    min_list(Distanze, Valore).
 
+
+distanza(pos(R1, C1), pos(R2, C2), Valore) :-
+    DistanzaR is abs(R1 - R2),
+    DistanzaC is abs(C1 - C2),
+    Valore is DistanzaR + DistanzaC.
 
 costo(_,_,Costo) :- Costo is 1.
 
 
-rbfs_aux(([Node,Path], _), FLimit, _, [ResNode, _, ResPath]):- 
-  finale(Node),!,
+rbfs_aux(([Node,Path], _), FLimit, ListaNodiFinali, [ResNode, _, ResPath]):- 
+  member(Node, ListaNodiFinali), !,
   ResNode = Node,
   ResPath = Path.
 
-rbfs_aux(([Node,Path], F), FLimit, NodoFinale, [ResNode, ResF, ResPath]):-
+rbfs_aux(([Node,Path], F), FLimit, ListaNodiFinali, [ResNode, ResF, ResPath]):-
   findall(Azione, applicabile(Azione, Node), ListaAzioni),
-  generaNuoviStati(([Node,Path], F), ListaAzioni, NodoFinale, ListaNuoviNodi),
+  generaNuoviStati(([Node,Path], F), ListaAzioni, ListaNodiFinali, ListaNuoviNodi),
   (
       ListaNuoviNodi == [], !,
       ResNode = -1,
       ResF = 9999,
       writeln("RBFS: FAIL, NO SUCCESSORS FOUND")
       ;
-      rbfs_while(ListaNuoviNodi, FLimit, NodoFinale, [ResNode, ResF, ResPath])
+      rbfs_while(ListaNuoviNodi, FLimit, ListaNodiFinali, [ResNode, ResF, ResPath])
   ).
 
 
-rbfs_while(ListaNuoviNodi, FLimit, NodoFinale, [ResNode, ResF, ResPath]):-
+rbfs_while(ListaNuoviNodi, FLimit, ListaNodiFinali, [ResNode, ResF, ResPath]):-
   estraiFPrimoNodo(ListaNuoviNodi, BestNode, BestPath, BestF, TailNuoviNodi),
   (
       BestF > FLimit, !,
@@ -55,11 +59,11 @@ rbfs_while(ListaNuoviNodi, FLimit, NodoFinale, [ResNode, ResF, ResPath]):-
       ;
       estraiFSecondoNodo(ListaNuoviNodi, FLimit, FAlternativo),
       NewFLimit is min(FAlternativo, FLimit),
-      rbfs_aux(([BestNode, BestPath],BestF), NewFLimit, NodoFinale, [TempResNode, TempResF, ResPath]),
+      rbfs_aux(([BestNode, BestPath],BestF), NewFLimit, ListaNodiFinali, [TempResNode, TempResF, ResPath]),
       (
           TempResNode == -1, !,
           append(TailNuoviNodi, [([BestNode, BestPath], TempResF)], NewSuccessors),
-          rbfs_while(NewSuccessors, FLimit, NodoFinale, [ResNode, ResF, ResPath])
+          rbfs_while(NewSuccessors, FLimit, ListaNodiFinali, [ResNode, ResF, ResPath])
           ;
           TempResNode \== -1, !,
           ResNode = TempResNode, 
@@ -85,23 +89,16 @@ inserisci_ordinato(([Node, Cammino], F), [([Nodo1, Cammino1], F1) | Coda], [([No
 
 % Generazione dei nuovi stati
 generaNuoviStati(_, [], _, []).
-generaNuoviStati(([Node, Cammino], F), [Azione | AzioniTail], NodoFinale, ListaNuoviNodiOrdinata) :-
+generaNuoviStati(([Node, Cammino], F), [Azione | AzioniTail], ListaNodiFinali, ListaNuoviNodiOrdinata) :-
     trasforma(Azione, Node, NuovoNodo),
     append(Cammino, [Azione], NuovoCammino),
     costo(Node, NuovoNodo, Costo),
     length(NuovoCammino, GValue),
     NuovoGValue is GValue + Costo,
-    euristica(NuovoNodo, NodoFinale, H),
+    euristica(NuovoNodo, ListaNodiFinali, H),
     NuovoF is NuovoGValue + H,
-    generaNuoviStati(([Node, Cammino], F), AzioniTail, NodoFinale, NuoviStatiTail),
+    generaNuoviStati(([Node, Cammino], F), AzioniTail, ListaNodiFinali, NuoviStatiTail),
     inserisci_ordinato(([NuovoNodo, NuovoCammino], NuovoF), NuoviStatiTail, ListaNuoviNodiOrdinata).
-
-% Esempio di utilizzo
-% trasforma/3, costo/3, euristica/3 devono essere definiti altrove nel codice
-
-% Esempio di utilizzo
-% trasforma/3, costo/3, euristica/3 devono essere definiti altrove nel codice
-
 
 
 
