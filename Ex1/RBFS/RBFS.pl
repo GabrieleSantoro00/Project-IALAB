@@ -1,6 +1,9 @@
-:- ['azioni.pl'], ['labirinto.pl'], ['stampaLabirinto.pl'].
+:- ['azioni.pl'], ['stampaLabirinto.pl'], ['../labirinti/labyrinth9.pl'].
 :- set_prolog_flag(answer_write_options, [max_depth(0)]).
 
+/**
+ * Predicato rbfs/0, fa da wrapper per l'inizio dell'esecuzione.
+ */
 
 rbfs():-
   statistics(cputime, Start),
@@ -19,20 +22,50 @@ rbfs():-
   esegui().
 
 
+/**
+ * Predicato euristica/3, calcola la distanza tra un nodo e 
+ * i nodi finali e restituisce il valore minimo.
+ */
+
 euristica(Nodo, ListaNodiFinali, Valore) :-
     findall(H, (member(NodoFinale, ListaNodiFinali), distanza(Nodo, NodoFinale, H)), Distanze),
     min_list(Distanze, Valore).
 
+
+/**
+ * Predicato distanza/3, calcola la distanza tra due nodi.
+ */
 
 distanza(pos(R1, C1), pos(R2, C2), Valore) :-
     DistanzaR is abs(R1 - R2),
     DistanzaC is abs(C1 - C2),
     Valore is DistanzaR + DistanzaC.
 
+/**
+ * Predicato costo/3, calcola il costo tra due nodi.
+ */
+
 costo(_,_,Costo) :- Costo is 1.
 
+/**
+ * rbfs_aux(+NodoCorrente, +FLimit, +ListaNodiFinali, -Risultato)
+ *
+ * Predicato che implementa l'algoritmo di ricerca RBFS (Recursive Best-First Search).
+ *
+ * Parametri:
+ * - NodoCorrente: Coppia ([Nodo, Cammino], F) che rappresenta il nodo corrente, il cammino percorso e il costo F.
+ * - FLimit: Limite superiore del costo F per la ricerca.
+ * - ListaNodiFinali: Lista dei nodi obiettivo.
+ * - Risultato: Lista contenente il nodo risultato (ResNode), il costo F associato (ResF) e il cammino (ResPath).
+ *
+ * Il predicato funziona come segue:
+ * 1. Se il nodo corrente è un nodo finale, restituisce il nodo e il cammino.
+ * 2. Altrimenti, genera i nuovi stati applicabili al nodo corrente.
+ * 3. Se non ci sono successori, la ricerca fallisce.
+ * 4. Altrimenti, chiama rbfs_while/4 per continuare la ricerca con i nuovi stati.
+ */
 
-rbfs_aux(([Node,Path], _), FLimit, ListaNodiFinali, [ResNode, _, ResPath]):- 
+rbfs_aux(([Node,Path], _), _, ListaNodiFinali, [ResNode, _, ResPath]):- 
   member(Node, ListaNodiFinali), !,
   ResNode = Node,
   ResPath = Path.
@@ -49,6 +82,25 @@ rbfs_aux(([Node,Path], F), FLimit, ListaNodiFinali, [ResNode, ResF, ResPath]):-
       rbfs_while(ListaNuoviNodi, FLimit, ListaNodiFinali, [ResNode, ResF, ResPath])
   ).
 
+/**
+ * rbfs_while(+ListaNuoviNodi, +FLimit, +ListaNodiFinali, -Risultato)
+ *
+ * Predicato che implementa l'algoritmo di ricerca RBFS (Recursive Best-First Search) in un ciclo while.
+ * 
+ * Parametri:
+ * - ListaNuoviNodi: Lista dei nuovi nodi da esplorare, ciascuno rappresentato come una coppia ([Nodo, Cammino], F).
+ * - FLimit: Limite superiore del costo F per la ricerca.
+ * - ListaNodiFinali: Lista dei nodi finali (obiettivi) della ricerca.
+ * - Risultato: Lista contenente il nodo risultato (ResNode), il costo F associato (ResF) e il cammino (ResPath).
+ *
+ * Il predicato funziona come segue:
+ * 1. Estrae il nodo con il costo F più basso dalla lista dei nuovi nodi.
+ * 2. Se il costo F del nodo estratto è maggiore del limite FLimit, la ricerca fallisce e il nodo risultato è impostato a -1.
+ * 3. Altrimenti, calcola un nuovo limite FLimit basato sul secondo miglior costo F nella lista dei nuovi nodi.
+ * 4. Chiama ricorsivamente rbfs_aux/4 con il nodo estratto e il nuovo limite FLimit.
+ * 5. Se la chiamata ricorsiva fallisce (TempResNode == -1), aggiunge il nodo estratto con il nuovo costo F alla lista dei successori e ripete il ciclo.
+ * 6. Se la chiamata ricorsiva ha successo, imposta il nodo risultato e il costo F associato.
+ */
 
 rbfs_while(ListaNuoviNodi, FLimit, ListaNodiFinali, [ResNode, ResF, ResPath]):-
   estraiFPrimoNodo(ListaNuoviNodi, BestNode, BestPath, BestF, TailNuoviNodi),
@@ -71,15 +123,24 @@ rbfs_while(ListaNuoviNodi, FLimit, ListaNodiFinali, [ResNode, ResF, ResPath]):-
       )
   ).
 
+/**
+ * Estrazione del nodo con il costo F più basso dalla lista dei nuovi nodi.
+ */
 
 estraiFPrimoNodo([([Node, Cammino],F)|Coda], Node, Cammino, F, Coda).
+
+/**
+ * Estrazione del secondo nodo con il costo F più basso dalla lista dei nuovi nodi.
+ */
 
 estraiFSecondoNodo([], FLimit, FLimit):- !.
 estraiFSecondoNodo([([_, _],_)], FLimit, FLimit):- !.
 estraiFSecondoNodo([_, ([_, _],F)|_], _, F).
 
+/**
+ * Inserimento ordinato di un nodo nella lista dei nuovi nodi.
+ */
 
-% Inserimento ordinato nella lista
 inserisci_ordinato(E, [], [E]).
 inserisci_ordinato(([Node, Cammino], F), [([Nodo1, Cammino1], F1) | Coda], [([Node, Cammino], F), ([Nodo1, Cammino1], F1) | Coda]) :-
     F =< F1.
@@ -87,7 +148,10 @@ inserisci_ordinato(([Node, Cammino], F), [([Nodo1, Cammino1], F1) | Coda], [([No
     F > F1,
     inserisci_ordinato(([Node, Cammino], F), Coda, ListaOrdinata).
 
-% Generazione dei nuovi stati
+/**
+ * Generazione dei nuovi stati applicabili al nodo corrente.
+ */
+
 generaNuoviStati(_, [], _, []).
 generaNuoviStati(([Node, Cammino], F), [Azione | AzioniTail], ListaNodiFinali, ListaNuoviNodiOrdinata) :-
     trasforma(Azione, Node, NuovoNodo),
