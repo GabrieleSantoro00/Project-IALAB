@@ -48,7 +48,7 @@
   (bind ?*best-attempt-case* (str-cat ?r "r-" ?m "m"))
   (printout t "Best attempt case: " ?*best-attempt-case* crlf)
 )
-
+;DA RIVEDERE PERCHè NON SCATTA 
 (defrule generate-next-guess
   ?status <- (status (step ?s) (mode computer))
   ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))

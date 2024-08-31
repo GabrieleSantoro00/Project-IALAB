@@ -601,154 +601,124 @@
   ;; Stampa la nuova combinazione
   (printout t "-----GUESS " (+ ?s 1) "---- " (nth$ 1 ?new-colors) " " (nth$ 2 ?new-colors) " " (nth$ 3 ?new-colors) " " (nth$ 4 ?new-colors) crlf)
 )
-(defrule case-0r-2m
-  (status (step ?s))
+
+(defrule handle-feedback-0-right-placed-2-miss-placed
   ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 2))
-  (attempt (step ?s) (g $?g))
+  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
 =>
-(retract ?feedback)
-  ; Sceglie due posizioni casuali per scambiare i colori
-  (bind ?pos1 (random 1 4))
-  (bind ?pos2 ?pos1)
-  (while (eq ?pos2 ?pos1) do
-     (bind ?pos2 (random 1 4))
-  )
+  (printout t "----ANSWER " ?s "----: 0 🔴 - 2 ⚪" crlf)
+  (retract ?feedback)
 
+  ;; Crea una lista delle posizioni originali
+  (bind ?positions (create$ 1 2 3 4))
 
-  ; Scambia i colori nelle posizioni scelte
-  (bind ?temp1 (nth$ ?pos1 $?g))
-  (bind ?temp2 (nth$ ?pos2 $?g))
-  (bind $?new-g (replace$ (replace$ $?g ?pos1 ?pos1 ?temp2) ?pos2 ?pos2 ?temp1))
+  ;; Crea una lista delle nuove posizioni in modo casuale
+  (bind ?newPos1 (nth$ (random 1 (length$ ?positions)) ?positions))
+  (bind ?positions (delete-member$ ?positions ?newPos1))
+  (bind ?newPos2 (nth$ (random 1 (length$ ?positions)) ?positions))
+  (bind ?positions (delete-member$ ?positions ?newPos2))
+  (bind ?newPos3 (nth$ (random 1 (length$ ?positions)) ?positions))
+  (bind ?positions (delete-member$ ?positions ?newPos3))
+  (bind ?newPos4 (nth$ 1 ?positions)) ;; L'ultima posizione rimanente
 
+  ;; Ottiene i colori della combinazione precedente
+  (bind ?colors (create$ ?c1 ?c2 ?c3 ?c4))
 
-  ; Genera due nuovi colori che non sono già presenti nella combinazione
-  (bind ?new-color1 (random-color-not-in $?new-g))
-  (bind ?new-color2 ?new-color1)
-  (while (eq ?new-color2 ?new-color1) do
-     (bind ?new-color2 (random-color-not-in $?new-g))
-  )
+  ;; Crea una nuova combinazione con i colori scambiati in modo casuale
+  (bind ?new-colors (create$
+     (nth$ ?newPos1 ?colors)
+     (nth$ ?newPos2 ?colors)
+     (nth$ ?newPos3 ?colors)
+     (nth$ ?newPos4 ?colors)
+  ))
 
+  ;; Asserisce il nuovo tentativo
+  (assert (guess (step (+ ?s 1)) (g ?new-colors)))
 
-  ; Sostituisce due colori con i nuovi colori generati
-  (bind ?pos3 (random 1 4))
-  (bind ?pos4 ?pos3)
-  (while (or (eq ?pos4 ?pos3) (eq ?pos4 ?pos1) (eq ?pos4 ?pos2)) do
-     (bind ?pos4 (random 1 4))
-  )
-  (bind $?new-g (replace$ (replace$ $?new-g ?pos3 ?pos3 ?new-color1) ?pos4 ?pos4 ?new-color2))
-
-
-  ; Asserisce il nuovo tentativo con la combinazione aggiornata
-  (assert (guess (step (+ ?s 1)) (g $?new-g)))
-  (printout t "0R-2M: Swapping two colors and introducing two new colors: " $?new-g crlf)
+  ;; Stampa la nuova combinazione
+  (printout t "-----GUESS " (+ ?s 1) "---- " (nth$ 1 ?new-colors) " " (nth$ 2 ?new-colors) " " (nth$ 3 ?new-colors) " " (nth$ 4 ?new-colors) crlf)
 )
 
 
+(defrule handle-feedback-0-right-placed-1-miss-placed
+  ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 1))
+  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
+=>
+  (printout t "----ANSWER " ?s "----: 0 🔴 - 1 ⚪" crlf)
+  (retract ?feedback)
 
+  ;; Crea una lista delle posizioni originali
+  (bind ?positions (create$ 1 2 3 4))
 
+  ;; Seleziona la posizione del colore in posizione sbagliata
+  (bind ?missPos (nth$ (random 1 (length$ ?positions)) ?positions))
+  (bind ?positions (delete-member$ ?positions ?missPos))
 
+  ;; Seleziona le posizioni rimanenti per i colori sbagliati
+  (bind ?newPos2 (nth$ (random 1 (length$ ?positions)) ?positions))
+  (bind ?positions (delete-member$ ?positions ?newPos2))
+  (bind ?newPos3 (nth$ (random 1 (length$ ?positions)) ?positions))
+  (bind ?positions (delete-member$ ?positions ?newPos3))
+  (bind ?newPos4 (nth$ 1 ?positions)) ;; L'ultima posizione rimanente
 
+  ;; Ottiene i colori della combinazione precedente
+  (bind ?colors (create$ ?c1 ?c2 ?c3 ?c4))
 
+  ;; Crea una nuova combinazione rimescolando i colori
+  (bind ?new-colors (create$
+     (nth$ ?missPos ?colors)    ;; Mantieni il colore sbagliato ma in una nuova posizione
+     (nth$ ?newPos2 ?colors)
+     (nth$ ?newPos3 ?colors)
+     (nth$ ?newPos4 ?colors)
+  ))
 
-(defrule answer-0R-2M
- ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 2))
- ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
- (colors $?colors)
- =>
- (printout t "----ANSWER " ?s "----: 0 🔴 - 2 ⚪" crlf)
- (retract ?feedback)
- (bind ?guess (create$ ?c1 ?c2 ?c3 ?c4))
+  ;; Asserisce il nuovo tentativo
+  (assert (guess (step (+ ?s 1)) (g ?new-colors)))
 
-
- ;; Seleziona il primo colore casuale dalla combinazione precedente
- (bind ?r1 (random 1 4))
- (bind ?selected-color1 (nth$ ?r1 ?guess))
-
-
- ;; Seleziona il secondo colore casuale dalla combinazione precedente
- (bind ?remaining-guess (delete-member$ ?guess ?selected-color1))
- (bind ?r2 (random 1 3))
- (bind ?selected-color2 (nth$ ?r2 ?remaining-guess))
-
-
- ;; Rimuovi i colori selezionati dalla lista dei colori disponibili
- (bind ?remaining-colors (delete-member$ $?colors ?selected-color1 ?selected-color2))
-
-
- ;; Genera una nuova combinazione con due nuovi colori
- (bind ?new-colors (create$))
- (loop-for-count (?i 1 2)
-   (bind ?r3 (random 1 (length$ ?remaining-colors)))
-   (bind ?new-color (nth$ ?r3 ?remaining-colors))
-   (bind ?remaining-colors (delete-member$ ?remaining-colors ?new-color))
-   (bind ?new-colors (create$ ?new-colors ?new-color))
- )
-
-
- ;; Inserisci i due colori selezionati in nuove posizioni casuali
- (bind ?new-position1 (random 1 4))
- (while (or (= ?new-position1 ?r1) (member$ ?new-position1 (create$ ?r1 ?r2))) do
-   (bind ?new-position1 (random 1 4))
- )
- (bind ?new-colors (insert$ ?new-colors ?new-position1 ?selected-color1))
-
-
- (bind ?new-position2 (random 1 4))
- (while (or (= ?new-position2 ?r1) (= ?new-position2 ?new-position1) (= ?new-position2 ?r2)) do
-   (bind ?new-position2 (random 1 4))
- )
- (bind ?new-colors (insert$ ?new-colors ?new-position2 ?selected-color2))
-
-
- ;; Assicurati che la nuova combinazione abbia esattamente 4 colori
- (if (< (length$ ?new-colors) 4) then
-   (bind ?new-colors (create$ ?new-colors (nth$ 1 ?remaining-colors)))
- )
-
-
- (assert (guess (step (+ ?s 1)) (g ?new-colors)))
- (printout t "-----GUESS " (+ ?s 1) "---- " ?new-colors crlf)
+  ;; Stampa la nuova combinazione
+  (printout t "-----GUESS " (+ ?s 1) "---- " (nth$ 1 ?new-colors) " " (nth$ 2 ?new-colors) " " (nth$ 3 ?new-colors) " " (nth$ 4 ?new-colors) crlf)
 )
 
+(defrule handle-feedback-1-right-placed-1-miss-placed
+  ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 1))
+  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
+=>
+  (printout t "----ANSWER " ?s "----: 1 🔴 - 1 ⚪" crlf)
+  (retract ?feedback)
 
+  ;; Crea una lista delle posizioni originali
+  (bind ?positions (create$ 1 2 3 4))
 
+  ;; Seleziona la posizione del colore corretto
+  (bind ?correctPos (nth$ (random 1 (length$ ?positions)) ?positions))
+  (bind ?positions (delete-member$ ?positions ?correctPos))
 
+  ;; Seleziona la nuova posizione per il colore in posizione sbagliata
+  (bind ?missPos (nth$ (random 1 (length$ ?positions)) ?positions))
+  (bind ?positions (delete-member$ ?positions ?missPos))
 
+  ;; Seleziona le posizioni rimanenti
+  (bind ?newPos3 (nth$ (random 1 (length$ ?positions)) ?positions))
+  (bind ?positions (delete-member$ ?positions ?newPos3))
+  (bind ?newPos4 (nth$ 1 ?positions)) ;; L'ultima posizione rimanente
 
-(defrule answer-0R-1M
- ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 1))
- ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
- (colors $?colors)
- =>
- (printout t "----ANSWER " ?s "----: 0 🔴 - 1 ⚪" crlf)
- (retract ?feedback)
- (bind ?guess (create$ ?c1 ?c2 ?c3 ?c4))
- (bind ?r1 (random 1 4))
- (bind ?selected-color (nth$ ?r1 ?guess))
- (bind ?remaining-colors (delete-member$ $?colors ?selected-color))
- (bind ?new-colors (create$))
- (loop-for-count (?i 1 3)
-   (bind ?r2 (random 1 (length$ ?remaining-colors)))
-   (bind ?new-color (nth$ ?r2 ?remaining-colors))
-   (bind ?remaining-colors (delete-member$ ?remaining-colors ?new-color))
-   (bind ?new-colors (create$ ?new-colors ?new-color))
- )
- (bind ?new-position (random 1 4))
- (while (= ?new-position ?r1) do
-   (bind ?new-position (random 1 4))
- )
- (bind ?new-colors (insert$ ?new-colors ?new-position ?selected-color))
- (assert (guess (step (+ ?s 1)) (g ?new-colors)))
- (printout t "-----GUESS " (+ ?s 1) "---- " ?new-colors crlf)
+  ;; Ottiene i colori della combinazione precedente
+  (bind ?colors (create$ ?c1 ?c2 ?c3 ?c4))
+
+  ;; Crea una nuova combinazione mantenendo il colore giusto e rimescolando gli altri
+  (bind ?new-colors (create$
+     (nth$ ?correctPos ?colors) ;; Mantieni il colore giusto nella sua posizione
+     (nth$ ?missPos ?colors)    ;; Riorganizza il colore sbagliato in una nuova posizione
+     (nth$ ?newPos3 ?colors)
+     (nth$ ?newPos4 ?colors)
+  ))
+
+  ;; Asserisce il nuovo tentativo
+  (assert (guess (step (+ ?s 1)) (g ?new-colors)))
+
+  ;; Stampa la nuova combinazione
+  (printout t "-----GUESS " (+ ?s 1) "---- " (nth$ 1 ?new-colors) " " (nth$ 2 ?new-colors) " " (nth$ 3 ?new-colors) " " (nth$ 4 ?new-colors) crlf)
 )
-
-
-
-
-
-
-
-
 
 
 (defrule for-computer-gameover
