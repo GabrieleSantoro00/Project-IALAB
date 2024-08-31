@@ -1,11 +1,11 @@
 % Predicato per l'acquisizione dello stato iniziale del labirinto
 iniziale(StatoIniziale) :-
-    mostro(Mostro),
-    findall(G, gemma(G), Gemme),
-    findall(B, bloccoDiGhiaccio(B), BlocchiDiGhiaccio),
-    martello(Martello),
-    HaMartello = false,
-    StatoIniziale = (Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello).
+  mostro(Mostro),
+  setof(G, gemma(G), Gemme),
+  setof(B, bloccoDiGhiaccio(B), BlocchiDiGhiaccio),
+  martello(Martello),
+  HaMartello = false,
+  StatoIniziale = (Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello).
 
 % Predicato per l'acquisizione dello stato finale del labirinto
 finale(Mostro) :-
