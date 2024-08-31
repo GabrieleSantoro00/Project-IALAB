@@ -1,4 +1,4 @@
-:- ['azioni.pl'], ['stampaLabirinto.pl'], ['../../labirinti/labirintoDiGhiaccio1.pl'].
+:- ['azioni.pl'], ['stampaLabirinto.pl'], ['../../labirinti/labirintoDiGhiaccio4.pl'].
 :- set_prolog_flag(answer_write_options, [max_depth(0)]).
 
 /**
@@ -12,14 +12,19 @@ astar() :-
   euristica(StatoIniziale, StatoFinale, H),
   G is 0,
   F is H + G,
-  astar_aux([(F, H, StatoIniziale, [])], [], StatoFinale, CamminoRovesciato),
+  astar_aux([(F, H, StatoIniziale, [])], [], StatoFinale, CamminoRovesciato, (Mostro, Gemme, BlocchiDiGhiaccio, Martello, HaMartello)),
   statistics(cputime, Stop),
   inverti(CamminoRovesciato, Cammino),
-  write("Nodo iniziale: "), writeln(StatoIniziale),
-  write("Nodo finale: "), writeln(StatoFinale),
+  write("Stato iniziale: "), writeln(StatoIniziale),
+  write("Nodo finale: "), writeln(StatoFinale), 
+  writeln(""),
+  write("Posizione mostro finale: "), writeln(Mostro), 
+  write("Posizione gemme finali: "), writeln(Gemme),
+  write("Il mostro ha il martello: "),  writeln(HaMartello),  
   write("Percorso: "), writeln(Cammino),
+  writeln(""),
   write("Tempo di esecuzione: "), T is Stop - Start, writeln(T),
-  write(""),
+  writeln(""),
   esegui().
 
 
@@ -55,16 +60,17 @@ euristica((pos(R1, C1), _, _, _, _), pos(R2, C2), Valore) :-
  */
 
 
-astar_aux([( _, _, Stato, Cammino)| _], _, StatoFinale, Cammino) :-
-  arrivoAlPortale(Stato),!.
+astar_aux([( _, _, Stato, Cammino)| _], _, StatoFinale, Cammino, StatoFinaleRitornato) :-
+  arrivoAlPortale(Stato),!,
+  StatoFinaleRitornato = Stato.
 
-astar_aux([(F, H, Stato, Cammino)| Coda], Visitati, StatoFinale, CamminoFinale) :-
+astar_aux([(F, H, Stato, Cammino)| Coda], Visitati, StatoFinale, CamminoFinale, StatoFinaleRitornato) :-
   generaNuoviStati((Stato, Cammino), ListaNuoviStati),
   differenza(ListaNuoviStati, Visitati, ListaNuoviStatiDaVisitare),
   calcolaFNuoviStati(ListaNuoviStatiDaVisitare, StatoFinale, ListaNuoviStatiConF),
   inserisci_lista_ordinata(ListaNuoviStatiConF, Coda, NuovaCoda),
   append(ListaNuoviStatiDaVisitare, Visitati, NuoviVisitati), 
-  astar_aux(NuovaCoda, [(Stato, Cammino) | NuoviVisitati], StatoFinale, CamminoFinale).
+  astar_aux(NuovaCoda, [(Stato, Cammino) | NuoviVisitati], StatoFinale, CamminoFinale, StatoFinaleRitornato).
 
 /**
  * Predicato generaNuoviStati/2, genera i nuovi stati a partire dallo stato attuale.
