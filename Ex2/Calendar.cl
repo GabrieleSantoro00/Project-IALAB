@@ -1,5 +1,9 @@
+% --------------------------- REQUISITO 1 ---------------------------
+
 %   Definizione delle squadre
 squadra(inter; milan; torino; roma; napoli; fiorentina; atalanta; bologna; genoa; udinese; lecce; sassuolo; cagliari; verona; como; frosinone).
+
+% --------------------------- REQUISITO 2 ---------------------------
 
 %   Definizione di 30 giornate
 giornata(1..30).
@@ -9,6 +13,8 @@ giornata(1..30).
     
 %   Definizione delle restanti partite in trasferta
 partitaInTrasferta(Squadra2, Squadra1) :- partitaInCasa(Squadra1, Squadra2).
+
+% --------------------------- REQUISITO 3 ---------------------------
 
 %   Definizione delle citta
 citta(milano; torino; roma; napoli; firenze; bergamo; bologna; genova; udine; lecce; reggio_emilia; cagliari; verona; como; frosinone).
@@ -31,6 +37,8 @@ dove(verona, verona).
 dove(como, como).
 dove(frosinone, frosinone).
 
+% --------------------------- REQUISITO 4 ---------------------------
+
 %   Una squadra non può giocare contro sé stessa
 :-  squadra(Squadra), partitaInCasa(Squadra, Squadra).
 :-  squadra(Squadra), partitaInTrasferta(Squadra, Squadra).
@@ -47,12 +55,14 @@ giocaInTrasferta(Squadra1, Giornata) :-
     giornata(Giornata),
     partita(Squadra2, Squadra1, Giornata).
 
+% --------------------------- REQUISITO 5 ---------------------------
+
 %   Definizione delle squadre della stessa citta
 squadraStessaCitta(Squadra1, Squadra2) :-
     squadra(Squadra1),
     squadra(Squadra2),
     citta(Citta),
-    Squadra1 <> Squadra2,       % <> è il simbolo di disuguaglianza
+    Squadra1 <> Squadra2,       
     dove(Squadra1, Citta),
     dove(Squadra2, Citta).
 
@@ -77,6 +87,8 @@ derby(Squadra1, Squadra2) :-
     Squadra1 <> Squadra2, 
     squadraStessaCitta(Squadra1, Squadra2).
 
+%  --------------------------- REQUISITO 6 ---------------------------
+
 %   Una squadra non gioca in casa 2 volte di fila
 :-  squadra(Squadra1), partita(Squadra1, Squadra2, Giornata), partita(Squadra1, Squadra3, Giornata), Squadra1 <> Squadra2, Squadra2 <> Squadra3.
 
@@ -86,13 +98,8 @@ derby(Squadra1, Squadra2) :-
 %   Una squadra gioca o in casa o in trasferta, non entrambe
 :-  squadra(Squadra1), giornata(Giornata), giocaInCasa(Squadra1, Giornata), giocaInTrasferta(Squadra1, Giornata).
 
-%   In una giornata (Giornata), ci sono esattamente 8 squadre in casa
-8  {giocaInCasa(Squadra, Giornata) : squadra(Squadra)}  8 :- giornata(Giornata).
+% --------------------------- RISULTATI ---------------------------
 
-%   In una giornata (Giornata), ci sono esattamente 8 squadre in trasferta
-8  {giocaInTrasferta(Squadra, Giornata) : squadra(Squadra)}  8 :- giornata(Giornata).
-
-%   RISULTATI
 risultato(Squadra1, Squadra2, Giornata, Citta) :-
     partita(Squadra1, Squadra2, Giornata),
     dove(Squadra1, Citta).

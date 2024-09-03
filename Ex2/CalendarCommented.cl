@@ -104,15 +104,6 @@ derby(Squadra1, Squadra2) :-
 %   Non è permesso che Squadra1 giochi in casa e in trasferta nella stessa giornata Giornata.
 
 %   ---------------------------------------------------------------------------------------------
-%   I due vincoli successivi sono stati aggiunti per distribuire equamente le partite tra le varie giornate
-
-%   In una giornata (Giornata), ci sono esattamente 8 squadre in casa
-8  {giocaInCasa(Squadra, Giornata) : squadra(Squadra)}  8 :- giornata(Giornata).
-%   Per ogni giornata (Giornata), esattamente 8 squadre (Squadra) devono giocare in casa (giocaInCasa(Squadra, Giornata)).
-
-%   In una giornata (Giornata), ci sono esattamente 8 squadre in trasferta
-8  {giocaInTrasferta(Squadra, Giornata) : squadra(Squadra)}  8 :- giornata(Giornata).
-%   ---------------------------------------------------------------------------------------------
 
 %   RISULTATI
 risultato(Squadra1, Squadra2, Giornata, Citta) :-
