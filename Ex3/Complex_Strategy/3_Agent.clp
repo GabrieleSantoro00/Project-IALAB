@@ -8,7 +8,7 @@
 )
 
 (deffacts codice-segreto
-  (secret-code (code black green yellow orange))
+  (secret-code (code blue green orange purple))
 )
 
 (deftemplate score
@@ -30,7 +30,7 @@
 (defrule calculate-best-attempt-case
   ?code <- (secret-code (code ?sc1 ?sc2 ?sc3 ?sc4))
   ?best <- (guess (step ?s) (g $?best-attempt))
-  (test (eq $?best-attempt ?*best-attempt*))
+  ;(test (eq $?best-attempt ?*best-attempt*))
   =>
   (bind ?r 0)
   (bind ?m 0)
@@ -48,6 +48,7 @@
   (bind ?*best-attempt-case* (str-cat ?r "r-" ?m "m"))
   (printout t "Best attempt case: " ?*best-attempt-case* crlf)
 )
+
 ;DA RIVEDERE PERCHè NON SCATTA 
 (defrule generate-next-guess
   ?status <- (status (step ?s) (mode computer))
