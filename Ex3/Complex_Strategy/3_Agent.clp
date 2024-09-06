@@ -121,22 +121,27 @@
    (printout t "New best attempt with score: " ?v crlf)
    (printout t "Best attempt combination: " ?best-attempt-str crlf)
    (printout t "Best feedback: " ?feedback-str crlf)
- else
-   (if (< ?v ?*best-score*)
-   then
-    (bind ?feedback-str (str-cat ?*best-right-placed* "r-" ?*best-miss-placed* "m"))
-    (bind ?*best-feedback* ?feedback-str)
-    (bind ?last-combination ?*best-attempt*)
-    (printout t "Generating new attempt based on best attempt " ?last-combination crlf)
-    (printout t "Best feedback: " ?*best-feedback* crlf)
-    (assert (answer (step ?s) (right-placed ?rp) (miss-placed ?mp)))
-    (printout t "rightplaced " ?*best-right-placed* " missplaced: " ?*best-miss-placed* crlf)
-    (assert (guess (step ?s) (g ?last-combination)))
-   )
- )
+))
+
+
+(defrule start-from-best-attempt
+  (declare (salience 100))
+  ?score <- (score (step ?s) (value ?v))
+  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
+  ?feedback <- (answer (step ?s) (right-placed ?rp) (miss-placed ?mp))
+  =>
+  (if (< ?v ?*best-score*)
+    then
+      (bind ?c1 (nth$ 1 ?*best-attempt*))
+      (bind ?c2 (nth$ 2 ?*best-attempt*))
+      (bind ?c3 (nth$ 3 ?*best-attempt*))
+      (bind ?c4 (nth$ 4 ?*best-attempt*))
+      ;(bind ?v ?*best-score*)
+      (printout t "Updated guess to best attempt: " ?c1 " " ?c2 " " ?c3 " " ?c4 crlf)
+      ;(printout t "New best score: " ?v crlf)
+  )
 )
-;; Regole di feedback esistenti
-;; (Includi tutte le regole di feedback che hai fornito precedentemente)
+
 
 
 (defrule handle-feedback-3-right-placed-0-miss-placed
