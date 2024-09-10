@@ -1,9 +1,9 @@
-% --------------------------- CONFIGURAZIONE CON 1 DERBY ---------------------------
+% --------------------------- CONFIGURAZIONE CON 2 DERBY ---------------------------
 
 % --------------------------- REQUISITO 1 ---------------------------
 
 %   Definizione delle squadre
-squadra(inter; milan; torino; roma; napoli; fiorentina; atalanta; bologna; genoa; udinese; lecce; sassuolo; cagliari; verona; como; frosinone).
+squadra(inter; milan; torino; roma; napoli; fiorentina; atalanta; bologna; genoa; udinese; lecce; sassuolo; cagliari; verona; lazio; frosinone).
 
 % --------------------------- REQUISITO 2 ---------------------------
 
@@ -19,7 +19,7 @@ partitaInTrasferta(Squadra2, Squadra1) :- partitaInCasa(Squadra1, Squadra2).
 % --------------------------- REQUISITO 3 ---------------------------
 
 %   Definizione delle citta
-citta(milano; torino; roma; napoli; firenze; bergamo; bologna; genova; udine; lecce; reggio_emilia; cagliari; verona; como; frosinone).
+citta(milano; torino; roma; napoli; firenze; bergamo; bologna; genova; udine; lecce; reggio_emilia; cagliari; verona; frosinone).
 
 %   Associazione delle squadre con la citta di riferimento
 dove(inter, milano).
@@ -36,8 +36,8 @@ dove(lecce, lecce).
 dove(sassuolo, reggio_emilia).
 dove(cagliari, cagliari).
 dove(verona, verona).
-dove(como, como).
 dove(frosinone, frosinone).
+dove(lazio, roma).
 
 % --------------------------- REQUISITO 4 ---------------------------
 
