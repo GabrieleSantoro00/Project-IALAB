@@ -3,37 +3,12 @@
 ;  ---------------------------------------------
 (defmodule AGENT (import MAIN ?ALL) (import GAME ?ALL) (export ?ALL))
 
-
 (deftemplate secret-code
   (multislot code (allowed-values blue green red yellow orange white black purple) (cardinality 4 4))
 )
 
 
-(deffacts codice-segreto
- (secret-code (code black green yellow orange))
-)
-
-(defglobal ?*best-right-placed* = 0)
-(defglobal ?*best-miss-placed* = 0)
-
-(deftemplate score
- (slot step (type INTEGER))
- (slot value (type INTEGER))
-)
-;; Template per memorizzare il best attempt
-(deftemplate best-attempt
-  (slot step (type INTEGER))
-  (multislot g (allowed-values blue green red yellow orange white black purple))
-  (slot score (type INTEGER))
-)
-
-
 (defglobal ?*tried-colors* = (create$))
-(defglobal ?*best-attempt* = (create$))
-(defglobal ?*best-score* = 0)
-(defglobal ?*best-attempt-case* = "")
-(defglobal ?*best-feedback* = "")
-
 
 (deffunction generate-new-color (?color1 ?color2 ?color3 ?color4 $?excluded-colors)
   (bind ?available-colors (create$ blue green red yellow orange white black purple))
@@ -53,10 +28,10 @@
      then
      (if (eq (length$ ?available-colors) 0)
         then
-        (bind ?*tried-colors* (create$)) ; Reset tried colors
-        (return (generate-new-color ?color1 ?color2 ?color3 ?color4 $?excluded-colors)) ; Retry generating a new color
+        (bind ?*tried-colors* (create$))
+        (return (generate-new-color ?color1 ?color2 ?color3 ?color4 $?excluded-colors))
      )
-     (return (nth$ 1 ?available-colors)) ; Return the first available color as a fallback
+     (return (nth$ 1 ?available-colors))
   )
   (return ?newColor)
 )
@@ -82,70 +57,7 @@
 )
 
 
-
-
-;; Template per memorizzare i tentativi precedenti
-(deftemplate attempt
-  (slot step (type INTEGER))
-  (multislot g (allowed-values blue green red yellow orange white black purple))
-  (slot score (type INTEGER))
-)
-
-
-;; Calcolo del punteggio
-(defrule calculate-score
- ?feedback <- (answer (step ?s) (right-placed ?rp) (miss-placed ?mp))
- =>
- (bind ?score (+ (* 2 ?rp) ?mp))
- (assert (score (step ?s) (value ?score)))
- (printout t "Score for step " ?s " is: " ?score crlf)
- (printout t "Score attuale: " ?score " best-score is: " ?*best-score* crlf)
-)
-
-(defrule update-best-attempt
- ?score <- (score (step ?s) (value ?v))
- ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
- ?feedback <- (answer (step ?s) (right-placed ?rp) (miss-placed ?mp))
- =>
-  ;; Memorizza il tentativo precedente
- (bind ?last-combination (create$ ?c1 ?c2 ?c3 ?c4))
- (if (> ?v ?*best-score*)
- then
-   (bind ?*best-score* ?v)
-   (bind ?*best-attempt* (create$ ?c1 ?c2 ?c3 ?c4))
-   (bind ?*best-right-placed* ?rp)
-   (bind ?*best-miss-placed* ?mp)
-   (bind ?best-attempt-str (str-cat ?c1 " " ?c2 " " ?c3 " " ?c4))
-   (bind ?feedback-str (str-cat ?rp "r-" ?mp "m"))
-   (bind ?*best-feedback* ?feedback-str)
-   (printout t "New best attempt with score: " ?v crlf)
-   (printout t "Best attempt combination: " ?best-attempt-str crlf)
-   (printout t "Best feedback: " ?feedback-str crlf)
-))
-
-
-(defrule start-from-best-attempt
-  (declare (salience 100))
-  ?score <- (score (step ?s) (value ?v))
-  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
-  ?feedback <- (answer (step ?s) (right-placed ?rp) (miss-placed ?mp))
-  =>
-  (if (< ?v ?*best-score*)
-    then
-      (bind ?c1 (nth$ 1 ?*best-attempt*))
-      (bind ?c2 (nth$ 2 ?*best-attempt*))
-      (bind ?c3 (nth$ 3 ?*best-attempt*))
-      (bind ?c4 (nth$ 4 ?*best-attempt*))
-      ;(bind ?v ?*best-score*)
-      (printout t "Updated guess to best attempt: " ?c1 " " ?c2 " " ?c3 " " ?c4 crlf)
-      ;(printout t "New best score: " ?v crlf)
-  )
-)
-
-
-
 (defrule handle-feedback-3-right-placed-0-miss-placed
-  ?score <- (score (step ?s) (value ?v))
   ?feedback <- (answer (step ?s) (right-placed 3) (miss-placed 0))
   ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
   =>
@@ -156,7 +68,6 @@
   (bind ?*tried-colors* (create$ ?*tried-colors* ?newColor))
   (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?c3 " " ?newColor crlf)
 )
-
 
 
 
@@ -179,8 +90,6 @@
 )
 
 
-
-
 (defrule handle-feedback-1-right-placed-0-miss-placed
 ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 0))
 ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
@@ -194,11 +103,6 @@
 ;(assert (new-attempt ?c1 ?newColor1 ?newColor2 ?newColor3))
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?newColor1 " " ?newColor2 " " ?newColor3 crlf)
 )
-
-
-
-
-
 
 
 
@@ -220,7 +124,6 @@
 
 
 
-
 (defrule handle-feedback-0-right-placed-0-miss-placed
  ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 0))
  ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
@@ -236,24 +139,12 @@
  )
 
 
-
-
-
-
-
-
 (defrule handle-feedback-4-right-placed
 ?feedback <- (answer (step ?s) (right-placed 4) (miss-placed 0))
 ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
 =>
 (printout t "You have discovered the secret code!" crlf)
 )
-
-
-
-
-
-
 
 
 (defrule handle-feedback-2-right-placed-2-miss-placed
@@ -265,11 +156,6 @@
 (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?c4 ?c3)))
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?c4 " " ?c3 crlf)
 )
-
-
-
-
-
 
 
 
@@ -286,11 +172,6 @@
 
 
 
-
-
-
-
-
 (defrule handle-feedback-1-right-placed-3-miss-placed
 ?feedback <- (answer (step ?s) (right-placed 1) (miss-placed 3))
 ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
@@ -300,11 +181,6 @@
 (assert (guess (step (+ ?s 1)) (g ?c1 ?c4 ?c3 ?c2)))
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c4 " " ?c3 " " ?c2 crlf)
 )
-
-
-
-
-
 
 
 
@@ -321,11 +197,6 @@
 
 
 
-
-
-
-
-
 (defrule handle-feedback-0-right-placed-4-miss-placed
 ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 4))
 ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
@@ -335,11 +206,6 @@
 (assert (guess (step (+ ?s 1)) (g ?c2 ?c3 ?c4 ?c1)))
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c2 " " ?c3 " " ?c4 " " ?c1 crlf)
 )
-
-
-
-
-
 
 
 
@@ -353,11 +219,6 @@
 (assert (guess (step (+ ?s 1)) (g ?c2 ?c3 ?c4 ?newColor)))
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c2 " " ?c3 " " ?c4 " " ?newColor crlf)
 )
-
-
-
-
-
 
 
 
@@ -375,11 +236,6 @@
 
 
 
-
-
-
-
-
 (defrule handle-feedback-0-right-placed-1-miss-placed
 ?feedback <- (answer (step ?s) (right-placed 0) (miss-placed 1))
 ?guess <- (guess (step ?s) (g ?c1 ?c2 ?c3 ?c4))
@@ -394,12 +250,6 @@
 )
 
 
-
-
-
-
-
-
 (defrule for-computer-gameover
 (declare (salience -15))
 ?status <- (status (step ?s&:(>= ?s 9)) (mode computer))
@@ -412,7 +262,9 @@
 )
 
 
-
+(deffacts codice-segreto
+ (secret-code (code black green yellow orange))
+)
 
 
 
