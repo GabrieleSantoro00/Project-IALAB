@@ -31,7 +31,7 @@
         (return ?newColor)
      )
   )
-  (if (eq ?newColor nil). ;Se ?newColor è nil e non ci sono colori disponibili, resetta la lista dei colori provati e richiama la funzione.
+  (if (eq ?newColor nil) ;Se ?newColor è nil e non ci sono colori disponibili, resetta la lista dei colori provati e richiama la funzione.
                            ;Se ci sono ancora colori disponibili, ritorna il primo colore disponibile.
      then
      (if (eq (length$ ?available-colors) 0)
@@ -73,7 +73,7 @@
   (retract ?feedback)
   (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4 ?*tried-colors*))
   (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?c3 ?newColor)))
-  (bind ?*tried-colors* (create$ ?*tried-colors* ?newColor))
+  (bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?c2 ?c3 ?newColor)))
   (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?c3 " " ?newColor crlf)
 )
 
