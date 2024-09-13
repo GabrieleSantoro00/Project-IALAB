@@ -87,9 +87,11 @@
 (retract ?feedback)
 (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
 (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
-(while (or (member$ (create$ ?c1 ?c2 ?newColor1 ?newColor2) ?*tried-colors*)
-          (member$ (create$ ?c1 ?c2 ?newColor2 ?newColor1) ?*tried-colors*)
-          (eq ?newColor1 ?newColor2))
+;member$ viene utilizzata per controllare se la nuova combinazione di colori generata (?c1, ?c2, ?newColor1, ?newColor2)
+;è già stata provata in precedenza e memorizzata nella variabile globale ?*tried-colors
+(while (or (member$ (create$ ?c1 ?c2 ?newColor1 ?newColor2) ?*tried-colors*) ;Questa riga controlla se la combinazione ?c1 ?c2 ?newColor1 ?newColor2 è già presente nella lista ?*tried-colors*.
+          (member$ (create$ ?c1 ?c2 ?newColor2 ?newColor1) ?*tried-colors*) ;Questa riga controlla se la combinazione inversa ?c1 ?c2 ?newColor2 ?newColor1 è già presente nella lista ?*tried-colors*.
+          (eq ?newColor1 ?newColor2)) ;Questa riga verifica che i due nuovi colori generati non siano uguali.
  (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
  (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1)))
 (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?newColor1 ?newColor2)))
@@ -109,7 +111,7 @@
 (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
 (bind ?newColor3 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1 ?newColor2))
 (assert (guess (step (+ ?s 1)) (g ?c1 ?newColor1 ?newColor2 ?newColor3)))
-;(assert (new-attempt ?c1 ?newColor1 ?newColor2 ?newColor3))
+(bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?newColor1 ?newColor2 ?newColor3)))
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?newColor1 " " ?newColor2 " " ?newColor3 crlf)
 )
 
@@ -144,6 +146,7 @@
  (bind ?newColor3 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1 ?newColor2))
  (bind ?newColor4 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1 ?newColor2 ?newColor3))
  (assert (guess (step (+ ?s 1)) (g ?newColor1 ?newColor2 ?newColor3 ?newColor4)))
+ (bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?newColor1 ?newColor2 ?newColor3 ?newColor4)))
  (printout t "-----GUESS " (+ ?s 1) "---- " ?newColor1 " " ?newColor2 " " ?newColor3 " " ?newColor4 crlf)
  )
 
@@ -176,6 +179,7 @@
 (retract ?feedback)
 (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4))
 (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?c4 ?newColor)))
+(bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?c2 ?c4 ?newColor)))
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?c4 " " ?newColor crlf)
 )
 
@@ -188,7 +192,8 @@
 (printout t "----ANSWER " ?s "----: 1 🔴 - 3 ⚪" crlf)
 (retract ?feedback)
 (assert (guess (step (+ ?s 1)) (g ?c1 ?c4 ?c3 ?c2)))
-(printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c4 " " ?c3 " " ?c2 crlf)
+(bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?c4 ?c3 ?c2)))
+(printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c3 " " ?c4 " " ?c2 crlf)
 )
 
 
@@ -201,7 +206,8 @@
 (retract ?feedback)
 (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4))
 (assert (guess (step (+ ?s 1)) (g ?c1 ?c4 ?c3 ?newColor)))
-(printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c4 " " ?c3 " " ?newColor crlf)
+(bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?c3 ?c4 ?newColor)))
+(printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c3 " " ?c4 " " ?newColor crlf)
 )
 
 
@@ -226,6 +232,8 @@
 (retract ?feedback)
 (bind ?newColor (generate-new-color ?c1 ?c2 ?c3 ?c4))
 (assert (guess (step (+ ?s 1)) (g ?c2 ?c3 ?c4 ?newColor)))
+(bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c2 ?c3 ?c4 ?newColor))) ;viene generata una nuova combinazione di colori e viene verificato se
+                                            ;questa combinazione è già presente in ?*tried-colors*. Se la combinazione è nuova, viene aggiunta alla lista dei tentativi
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c2 " " ?c3 " " ?c4 " " ?newColor crlf)
 )
 
@@ -240,6 +248,7 @@
 (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
 (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
 (assert (guess (step (+ ?s 1)) (g ?c3 ?c4 ?newColor1 ?newColor2)))
+(bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c3 ?c4 ?newColor1 ?newColor2)))
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c3 " " ?c4 " " ?newColor1 " " ?newColor2 crlf)
 )
 
@@ -255,6 +264,7 @@
 (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1))
 (bind ?newColor3 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1 ?newColor2))
 (assert (guess (step (+ ?s 1)) (g ?c1 ?newColor1 ?newColor2 ?newColor3)))
+(bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?newColor1 ?newColor2 ?newColor3)))
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?newColor1 " " ?newColor2 " " ?newColor3 crlf)
 )
 
