@@ -1,11 +1,13 @@
 % --------------------------- CONFIGURAZIONE CON 1 DERBY ---------------------------
 
 % --------------------------- REQUISITO 1 ---------------------------
+% 16 squadre iscritte
 
 %   Definizione delle squadre
 squadra(inter; milan; torino; roma; napoli; fiorentina; atalanta; bologna; genoa; udinese; lecce; sassuolo; cagliari; verona; como; frosinone).
 
 % --------------------------- REQUISITO 2 ---------------------------
+% 30 giornate, suddivise in 15 di andata e 15 di ritorno (non simmetriche)
 
 %   Definizione di 30 giornate
 giornata(1..30).
@@ -17,6 +19,7 @@ giornata(1..30).
 partitaInTrasferta(Squadra2, Squadra1) :- partitaInCasa(Squadra1, Squadra2).
 
 % --------------------------- REQUISITO 3 ---------------------------
+% Ogni squadra fa riferimento a una città
 
 %   Definizione delle citta
 citta(milano; torino; roma; napoli; firenze; bergamo; bologna; genova; udine; lecce; reggio_emilia; cagliari; verona; como; frosinone).
@@ -40,6 +43,7 @@ dove(como, como).
 dove(frosinone, frosinone).
 
 % --------------------------- REQUISITO 4 ---------------------------
+% Ogni squadra affronta tutte le altre squadre 1 volta in casa e 1 volta in trasferta
 
 %   Una squadra non può giocare contro sé stessa
 :-  squadra(Squadra), partitaInCasa(Squadra, Squadra).
@@ -58,6 +62,7 @@ giocaInTrasferta(Squadra1, Giornata) :-
     partita(Squadra2, Squadra1, Giornata).
 
 % --------------------------- REQUISITO 5 ---------------------------
+% Le squadre che condividono la stessa struttura di gioco non possono giocare in casa durante la stessa giornata (a eccezione dei derby)
 
 %   Definizione delle squadre della stessa citta
 squadraStessaCitta(Squadra1, Squadra2) :-
@@ -68,7 +73,7 @@ squadraStessaCitta(Squadra1, Squadra2) :-
     dove(Squadra1, Citta),
     dove(Squadra2, Citta).
 
-%   Una partita si gioca in un solo giorno
+%   Una partita si gioca in una sola giornata
 1   {partita(Squadra1, Squadra2, Giornata) : giornata(Giornata)}   1 :- 
     partitaInCasa(Squadra1, Squadra2), 
     Squadra1 <> Squadra2,
@@ -90,6 +95,7 @@ derby(Squadra1, Squadra2) :-
     squadraStessaCitta(Squadra1, Squadra2).
 
 %  --------------------------- REQUISITO 6 ---------------------------
+% Ciascuna squadra non può giocare più di 2 partite consecutive in casa o fuori casa.
 
 %   Una squadra non gioca in casa 2 volte di fila
 :-  squadra(Squadra1), partita(Squadra1, Squadra2, Giornata), partita(Squadra1, Squadra3, Giornata), Squadra1 <> Squadra2, Squadra2 <> Squadra3.
