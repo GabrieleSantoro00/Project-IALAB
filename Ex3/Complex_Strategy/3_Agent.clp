@@ -8,15 +8,22 @@
 )
 
 
+;La variabile globale ?*tried-colors* tiene traccia delle combinazioni di colori già provate, non dei singoli colori.
+;Questo significa che un colore può essere riutilizzato in una nuova combinazione, purché la combinazione stessa non sia già stata tentata.
 (defglobal ?*tried-colors* = (create$))
+
+
+; Funzione con lo scopo di generare un nuovo colore che non sia già presente in un insieme di colori dati e che non sia in una lista di colori esclusi
 
 (deffunction generate-new-color (?color1 ?color2 ?color3 ?color4 $?excluded-colors)
   (bind ?available-colors (create$ blue green red yellow orange white black purple))
   (foreach ?exclude ?excluded-colors
-     (bind ?available-colors (delete-member$ ?available-colors ?exclude))
+     (bind ?available-colors (delete-member$ ?available-colors ?exclude)) ;I colori esclusi sono quelli passati come argomento alla funzione generate-new-color
+     ;tramite il parametro $?excluded-colors. Questo parametro rappresenta una lista di colori che non devono essere considerati tra i colori
+     ;disponibili per la generazione di un nuovo colore.
   )
   (bind ?newColor nil)
-  (foreach ?color ?available-colors
+  (foreach ?color ?available-colors ;Itera sui colori disponibili e seleziona il primo colore che non è già presente nell'insieme di colori dati e che non è uguale a ?newColor.
      (if (and (not (member$ ?color (create$ ?color1 ?color2 ?color3 ?color4)))
               (not (eq ?color ?newColor)))
         then
@@ -24,7 +31,8 @@
         (return ?newColor)
      )
   )
-  (if (eq ?newColor nil)
+  (if (eq ?newColor nil). ;Se ?newColor è nil e non ci sono colori disponibili, resetta la lista dei colori provati e richiama la funzione.
+                           ;Se ci sono ancora colori disponibili, ritorna il primo colore disponibile.
      then
      (if (eq (length$ ?available-colors) 0)
         then
@@ -85,7 +93,8 @@
  (bind ?newColor1 (generate-new-color ?c1 ?c2 ?c3 ?c4))
  (bind ?newColor2 (generate-new-color ?c1 ?c2 ?c3 ?c4 ?newColor1)))
 (assert (guess (step (+ ?s 1)) (g ?c1 ?c2 ?newColor1 ?newColor2)))
-(bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?c2 ?newColor1 ?newColor2)))
+(bind ?*tried-colors* (create$ ?*tried-colors* (create$ ?c1 ?c2 ?newColor1 ?newColor2))) ;viene generata una nuova combinazione di colori e viene verificato se
+                                            ;questa combinazione è già presente in ?*tried-colors*. Se la combinazione è nuova, viene aggiunta alla lista dei tentativi
 (printout t "-----GUESS " (+ ?s 1) "---- " ?c1 " " ?c2 " " ?newColor1 " " ?newColor2 crlf)
 )
 
